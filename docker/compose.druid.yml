@@ -1,6 +1,6 @@
 services:
   druid:
-    image: apache/druid:latest
+    image: apache/druid:36.0.0
     env_file:
       - ./druid/environment
     ports:

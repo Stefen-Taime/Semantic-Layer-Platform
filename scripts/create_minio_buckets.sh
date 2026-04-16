@@ -12,5 +12,5 @@ fi
 
 echo "MinIO client 'mc' is not installed."
 echo "Either install mc and rerun this script, or run:"
-echo "  docker compose -f docker/compose.base.yml -f docker/compose.minio.yml up minio-init"
+echo "  ./scripts/docker_compose.sh -f docker/compose.base.yml -f docker/compose.minio.yml up minio-init"
 exit 1

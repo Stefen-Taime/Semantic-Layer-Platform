@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-docker compose \
+./scripts/docker_compose.sh \
   -f docker/compose.base.yml \
   -f docker/compose.minio.yml \
   -f docker/compose.hive.yml \

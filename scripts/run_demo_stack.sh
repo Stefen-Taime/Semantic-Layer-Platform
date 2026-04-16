@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-docker compose -f docker/compose.demo.yml up -d
+./scripts/docker_compose.sh -f docker/compose.demo.yml up -d
 
 cat <<'EOF'
 MetricForge NYC demo stack started.

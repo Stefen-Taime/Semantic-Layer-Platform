@@ -29,3 +29,10 @@ derby.log
 .DS_Store
 .idea/
 .vscode/
+
+# Terraform state
+.terraform/
+*.tfstate
+*.tfstate.backup
+terraform.tfvars
+terraform.tfvars.json

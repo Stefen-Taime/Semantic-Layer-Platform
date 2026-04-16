@@ -5,4 +5,4 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${PROJECT_ROOT}"
 
-docker compose -f docker/compose.full.yml down
+./scripts/docker_compose.sh -f docker/compose.full.yml down

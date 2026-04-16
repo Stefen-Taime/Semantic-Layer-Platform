@@ -2,4 +2,4 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-docker compose -f docker/compose.demo.yml down
+./scripts/docker_compose.sh -f docker/compose.demo.yml down
