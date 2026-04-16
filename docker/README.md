@@ -7,7 +7,7 @@ La couche Docker Compose sert à rapprocher `MetricForge NYC` d'une architecture
 - **MinIO** : stockage objet local compatible S3
 - **Hive Metastore + PostgreSQL** : catalogue partagé
 - **Trino** : serving SQL flexible
-- **Druid** : serving OLAP rapide
+- **Druid** : serving OLAP rapide avec routeur, broker, historical, middle manager, coordinator, ZooKeeper et PostgreSQL metadata store
 - **FastAPI** : API métriques
 - **Streamlit** : dashboard
 - **Airflow** : orchestration complète
@@ -74,6 +74,8 @@ docker compose \
   up -d
 ```
 
+Cette brique Druid démarre plusieurs services internes. Le routeur et la console restent exposés sur `http://localhost:8888`.
+
 Airflow :
 
 ```bash
@@ -107,7 +109,7 @@ docker compose -f docker/compose.demo.yml up -d
 ## Limites honnêtes
 
 - Hive Metastore + S3A + MinIO peut demander des jars compatibles selon l'environnement
-- le démarrage single-server Druid dépend de la version d'image Docker
+- Druid reste la brique la plus lourde de la stack et demande plus de temps de warm-up que Trino ou l'API
 - la démo complète n'est pas recommandée sur Mac 8 Go
 - une VM GCP 32 Go est le meilleur compromis pour démontrer toute la stack
 

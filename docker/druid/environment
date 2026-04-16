@@ -1,3 +1,21 @@
-DRUID_SINGLE_NODE_CONF=nano-quickstart
+# Based on the official Apache Druid Docker quickstart environment.
+# For the full MetricForge demo VM, prefer micro-quickstart.
+# On smaller machines you can switch to nano-quickstart.
+DRUID_SINGLE_NODE_CONF=micro-quickstart
 DRUID_LOG_LEVEL=info
-DRUID_XMX=1g
+
+druid_extensions_loadList=["druid-histogram","druid-datasketches","druid-lookups-cached-global","postgresql-metadata-storage"]
+druid_zk_service_host=druid-zookeeper
+
+druid_metadata_storage_type=postgresql
+druid_metadata_storage_connector_connectURI=jdbc:postgresql://druid-postgres:5432/druid
+druid_metadata_storage_connector_user=druid
+druid_metadata_storage_connector_password=druid
+
+druid_storage_type=local
+druid_storage_storageDirectory=/opt/shared/segments
+druid_indexer_logs_type=file
+druid_indexer_logs_directory=/opt/shared/indexing-logs
+
+druid_processing_numThreads=2
+druid_processing_numMergeBuffers=2

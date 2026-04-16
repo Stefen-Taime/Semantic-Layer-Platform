@@ -1,6 +1,6 @@
 # Druid Docker Notes
 
-Cette configuration ajoute Apache Druid comme couche OLAP optionnelle pour `MetricForge NYC`.
+Cette configuration ajoute Apache Druid comme couche OLAP pour `MetricForge NYC`.
 
 - objectif : servir des métriques pré-agrégées rapidement
 - mode visé : démo portfolio sur VM GCP 16/32 Go
@@ -8,9 +8,18 @@ Cette configuration ajoute Apache Druid comme couche OLAP optionnelle pour `Metr
 
 ## Mode de lancement
 
-Le fichier `docker/compose.druid.yml` utilise une approche single-server quickstart.
-Le projet démarre Druid via `docker/druid/run-single-server.sh`, qui orchestre `bin/supervise`, `bin/run-zk` et les services Druid essentiels directement depuis l'image officielle.
-Cette approche évite de dépendre du helper `bin/start-druid`, qui n'est pas utilisable tel quel avec l'image distroless actuelle.
+Le fichier `docker/compose.druid.yml` suit désormais une topologie Docker plus standard, alignée sur le quickstart officiel Apache Druid :
+
+- `druid-zookeeper`
+- `druid-postgres`
+- `druid-coordinator`
+- `druid-broker`
+- `druid-historical`
+- `druid-middlemanager`
+- `druid` : routeur et console web
+
+Le routeur Druid expose la console sur `http://localhost:8888`.
+La configuration Druid partagée se trouve dans `docker/druid/environment`.
 
 ## Fichiers de référence
 
@@ -22,6 +31,6 @@ Cette approche évite de dépendre du helper `bin/start-druid`, qui n'est pas ut
 
 ## Limites honnêtes
 
-- la compatibilité exacte du démarrage single-server dépend de l'image Docker Druid
 - pour une démo complète avec Airflow + Trino + Druid, une VM **32 Go** est préférable
 - sur Docker Desktop Mac, il faut souvent augmenter la mémoire allouée
+- la configuration reste orientée démo et non cluster Druid haute disponibilité

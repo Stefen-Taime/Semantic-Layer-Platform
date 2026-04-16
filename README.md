@@ -196,7 +196,7 @@ curl -X POST http://localhost:8000/query \
 
 - la stack complète est lourde et vise surtout une **VM GCP 32 Go**
 - Hive Metastore + MinIO + S3A peut demander des ajustements de jars selon l'image et l'environnement
-- Druid single-server dépend de la version d'image disponible
+- Druid tourne maintenant en topologie multi-services de démo, mais reste plus lourd et plus lent à démarrer que le reste de la stack
 - les specs Druid supposent un export agrégé préalable
 - les credentials fournis sont strictement **dev-only**
 

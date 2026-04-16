@@ -22,8 +22,22 @@ Apache Druid sert ici de couche OLAP rapide pour quelques métriques pré-agrég
 
 Les specs dans `druid/ingestion_specs/` supposent qu'un export intermédiaire a produit des fichiers agrégés journaliers ou par zone.
 
+## Topologie Docker
+
+La stack Docker Druid du projet utilise désormais une topologie multi-services :
+
+- `druid-zookeeper`
+- `druid-postgres`
+- `druid-coordinator`
+- `druid-broker`
+- `druid-historical`
+- `druid-middlemanager`
+- `druid` : routeur et console
+
+Cette organisation est plus proche du quickstart Docker officiel Druid qu'un conteneur unique bricolé.
+
 ## Limites
 
 - il faut préparer les jeux agrégés avant ingestion
-- la configuration exacte du conteneur Druid peut dépendre de la version d'image
 - Druid rend la stack nettement plus lourde en mémoire
+- la topologie reste une démo monomachine, pas un cluster haute disponibilité

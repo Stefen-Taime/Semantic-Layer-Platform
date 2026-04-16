@@ -1,18 +1,130 @@
+volumes:
+  druid_metadata_postgres_data:
+  druid_zookeeper_data:
+  druid_shared:
+  druid_coordinator_var:
+  druid_broker_var:
+  druid_historical_var:
+  druid_middlemanager_var:
+  druid_router_var:
+
 services:
+  druid-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: druid
+      POSTGRES_USER: druid
+      POSTGRES_PASSWORD: druid
+    volumes:
+      - druid_metadata_postgres_data:/var/lib/postgresql/data
+    networks:
+      - metricforge_net
+
+  druid-zookeeper:
+    image: zookeeper:3.8
+    environment:
+      ZOO_MY_ID: 1
+    volumes:
+      - druid_zookeeper_data:/data
+      - druid_zookeeper_data:/datalog
+    networks:
+      - metricforge_net
+
+  druid-coordinator:
+    image: apache/druid:36.0.0
+    env_file:
+      - ./druid/environment
+    depends_on:
+      druid-zookeeper:
+        condition: service_started
+      druid-postgres:
+        condition: service_started
+    command:
+      - coordinator
+    volumes:
+      - druid_shared:/opt/shared
+      - druid_coordinator_var:/opt/druid/var
+    networks:
+      - metricforge_net
+
+  druid-broker:
+    image: apache/druid:36.0.0
+    env_file:
+      - ./druid/environment
+    depends_on:
+      druid-zookeeper:
+        condition: service_started
+      druid-postgres:
+        condition: service_started
+      druid-coordinator:
+        condition: service_started
+    command:
+      - broker
+    volumes:
+      - druid_broker_var:/opt/druid/var
+    networks:
+      - metricforge_net
+
+  druid-historical:
+    image: apache/druid:36.0.0
+    env_file:
+      - ./druid/environment
+    depends_on:
+      druid-zookeeper:
+        condition: service_started
+      druid-postgres:
+        condition: service_started
+      druid-coordinator:
+        condition: service_started
+    command:
+      - historical
+    volumes:
+      - druid_shared:/opt/shared
+      - druid_historical_var:/opt/druid/var
+    networks:
+      - metricforge_net
+
+  druid-middlemanager:
+    image: apache/druid:36.0.0
+    env_file:
+      - ./druid/environment
+    depends_on:
+      druid-zookeeper:
+        condition: service_started
+      druid-postgres:
+        condition: service_started
+      druid-coordinator:
+        condition: service_started
+    command:
+      - middleManager
+    volumes:
+      - druid_shared:/opt/shared
+      - druid_middlemanager_var:/opt/druid/var
+    networks:
+      - metricforge_net
+
   druid:
     image: apache/druid:36.0.0
     env_file:
       - ./druid/environment
+    depends_on:
+      druid-zookeeper:
+        condition: service_started
+      druid-postgres:
+        condition: service_started
+      druid-coordinator:
+        condition: service_started
+      druid-broker:
+        condition: service_started
+      druid-historical:
+        condition: service_started
+      druid-middlemanager:
+        condition: service_started
+    command:
+      - router
     ports:
       - "8888:8888"
-      - "8082:8082"
     volumes:
-      - druid_data:/opt/druid/var
-      - ./druid:/opt/metricforge/docker-druid:ro
-      - ../druid/ingestion_specs:/opt/metricforge/druid/ingestion_specs:ro
-      - ../druid/sample_queries:/opt/metricforge/druid/sample_queries:ro
-    entrypoint:
-      - /bin/bash
-      - /opt/metricforge/docker-druid/run-single-server.sh
+      - druid_router_var:/opt/druid/var
     networks:
       - metricforge_net

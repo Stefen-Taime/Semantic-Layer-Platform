@@ -7,5 +7,12 @@ volumes:
   hive_metastore_postgres_data:
   trino_data:
   airflow_postgres_data:
-  druid_data:
+  druid_metadata_postgres_data:
+  druid_zookeeper_data:
+  druid_shared:
+  druid_coordinator_var:
+  druid_broker_var:
+  druid_historical_var:
+  druid_middlemanager_var:
+  druid_router_var:
   app_logs:
