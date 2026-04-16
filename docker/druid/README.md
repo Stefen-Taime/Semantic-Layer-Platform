@@ -9,8 +9,8 @@ Cette configuration ajoute Apache Druid comme couche OLAP optionnelle pour `Metr
 ## Mode de lancement
 
 Le fichier `docker/compose.druid.yml` utilise une approche single-server quickstart.
-Le projet construit une petite image dérivée de `apache/druid:36.0.0` pour ajouter `python3`, car le helper `bin/start-druid` utilisé en mode single-server en a besoin.
-Selon la version upstream retenue plus tard, le chemin de conf ou la commande de bootstrap peut encore demander un ajustement.
+Le projet démarre Druid via `docker/druid/run-single-server.sh`, qui orchestre `bin/supervise`, `bin/run-zk` et les services Druid essentiels directement depuis l'image officielle.
+Cette approche évite de dépendre du helper `bin/start-druid`, qui n'est pas utilisable tel quel avec l'image distroless actuelle.
 
 ## Fichiers de référence
 

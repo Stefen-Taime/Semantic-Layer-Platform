@@ -1,9 +1,6 @@
 services:
   druid:
-    build:
-      context: ..
-      dockerfile: docker/druid/Dockerfile
-    image: metricforge-druid:36.0.0
+    image: apache/druid:36.0.0
     env_file:
       - ./druid/environment
     ports:
@@ -16,10 +13,6 @@ services:
       - ../druid/sample_queries:/opt/metricforge/druid/sample_queries:ro
     entrypoint:
       - /bin/bash
-      - -lc
-    command: >
-      echo 'Starting Apache Druid single-server quickstart for MetricForge NYC' &&
-      echo 'If this image changes, adjust command and config paths as documented in docker/README.md' &&
-      bin/start-druid single-server "${DRUID_SINGLE_NODE_CONF:-nano-quickstart}"
+      - /opt/metricforge/docker-druid/run-single-server.sh
     networks:
       - metricforge_net
