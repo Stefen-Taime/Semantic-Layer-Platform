@@ -40,6 +40,7 @@ def get_spark_runtime_settings() -> Dict[str, Any]:
         "minio_region": get_minio_region(),
         "minio_secure": get_minio_secure(),
         "jars_packages": os.getenv("SPARK_JARS_PACKAGES", ""),
+        "extra_jars_dir": os.getenv("SPARK_EXTRA_JARS_DIR", "").strip(),
     }
 
 
@@ -85,6 +86,10 @@ def create_spark_session(app_name: str = "MetricForgeNYC") -> "SparkSession":
     if settings["jars_packages"]:
         builder = builder.config("spark.jars.packages", settings["jars_packages"])
 
+    extra_jars = _discover_extra_jars(settings["extra_jars_dir"])
+    if extra_jars:
+        builder = builder.config("spark.jars", ",".join(extra_jars))
+
     spark = builder.enableHiveSupport().getOrCreate()
     spark.sparkContext.setLogLevel(log_level)
     return spark
@@ -93,3 +98,15 @@ def create_spark_session(app_name: str = "MetricForgeNYC") -> "SparkSession":
 def _quote_for_java(path: Path) -> str:
     """Normalize a filesystem path for Java option usage."""
     return str(path.resolve())
+
+
+def _discover_extra_jars(extra_jars_dir: str) -> list[str]:
+    """Return local jar paths that should be added to the Spark classpath."""
+    if not extra_jars_dir:
+        return []
+
+    jar_dir = Path(extra_jars_dir).expanduser()
+    if not jar_dir.exists() or not jar_dir.is_dir():
+        return []
+
+    return [str(path.resolve()) for path in sorted(jar_dir.glob("*.jar"))]

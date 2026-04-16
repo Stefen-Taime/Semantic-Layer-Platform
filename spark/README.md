@@ -67,7 +67,10 @@ python spark/04_run_sample_queries.py
 - `MINIO_REGION` : défaut `us-east-1`
 - `TLC_TRIPDATA_MONTHS` : défaut `2026-01,2026-02`
 - `SPARK_JARS_PACKAGES` : packages Hadoop AWS/AWS SDK compatibles avec votre build Spark
+- `SPARK_EXTRA_JARS_DIR` : dossier optionnel contenant des jars locaux ajoutés au classpath Spark
 
 ## Note importante
 
 Pour que Spark lise `s3a://...`, il faut fournir les jars S3A compatibles avec votre version Spark/Hadoop, généralement via `SPARK_JARS_PACKAGES`.
+Pour `pyspark 4.1.x`, le runtime embarqué utilise Hadoop `3.4.2`; un choix cohérent est donc `org.apache.hadoop:hadoop-aws:3.4.2`.
+Dans l'image Airflow du projet, ces jars S3A sont préchargés localement dans `/opt/spark-extra-jars` pour éviter les téléchargements Maven à chaud pendant les DAG runs.
