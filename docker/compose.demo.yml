@@ -117,11 +117,12 @@ services:
       - ./druid:/opt/metricforge/docker-druid:ro
       - ../druid/ingestion_specs:/opt/metricforge/druid/ingestion_specs:ro
       - ../druid/sample_queries:/opt/metricforge/druid/sample_queries:ro
+    entrypoint:
+      - /bin/bash
+      - -lc
     command: >
-      /bin/bash -lc "
       echo 'Starting Apache Druid single-server quickstart for MetricForge NYC' &&
-      bin/start-druid single-server ${DRUID_SINGLE_NODE_CONF:-nano-quickstart}
-      "
+      bin/start-druid single-server "${DRUID_SINGLE_NODE_CONF:-nano-quickstart}"
     networks:
       - metricforge_net
 
