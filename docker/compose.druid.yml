@@ -1,6 +1,9 @@
 services:
   druid:
-    image: apache/druid:36.0.0
+    build:
+      context: ..
+      dockerfile: docker/druid/Dockerfile
+    image: metricforge-druid:36.0.0
     env_file:
       - ./druid/environment
     ports:
