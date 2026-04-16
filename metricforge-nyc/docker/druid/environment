@@ -1,0 +1,3 @@
+DRUID_SINGLE_NODE_CONF=nano-quickstart
+DRUID_LOG_LEVEL=info
+DRUID_XMX=1g

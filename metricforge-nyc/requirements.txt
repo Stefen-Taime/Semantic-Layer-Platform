@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+pyspark
+pyyaml
+pandas
+streamlit
+pytest
+requests
+trino
+
+# Optional dependencies for later prompts
+# apache-airflow

@@ -1,0 +1,51 @@
+services:
+  metricforge-api:
+    build:
+      context: ..
+      dockerfile: docker/apps/api.Dockerfile
+    env_file:
+      - ./env/apps.env
+    environment:
+      SEMANTIC_LAYER_PATH: /app/semantic_layer
+      QUERY_ENGINE: trino
+      TRINO_HOST: trino
+      TRINO_PORT: 8080
+      TRINO_USER: metricforge
+      TRINO_CATALOG: hive
+      TRINO_SCHEMA: metricforge
+      DRUID_BROKER_URL: http://druid:8888
+      DRUID_DEFAULT_DATASOURCE: metricforge_taxi_daily_metrics
+    depends_on:
+      trino:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../semantic_layer:/app/semantic_layer
+      - ../metrics_engine:/app/metrics_engine
+      - ../api:/app/api
+      - ../spark:/app/spark
+      - app_logs:/app/logs
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - metricforge_net
+
+  metricforge-dashboard:
+    build:
+      context: ..
+      dockerfile: docker/apps/dashboard.Dockerfile
+    env_file:
+      - ./env/apps.env
+    environment:
+      METRICFORGE_API_URL: http://metricforge-api:8000
+    depends_on:
+      metricforge-api:
+        condition: service_started
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../dashboard:/app/dashboard
+      - app_logs:/app/logs
+    command: streamlit run dashboard/app.py --server.address 0.0.0.0 --server.port 8501
+    networks:
+      - metricforge_net

@@ -1,0 +1,6 @@
+entities:
+  - name: trip
+    label: Trip
+    source: metricforge.fct_taxi_trips
+    primary_key: trip_id
+    description: Certified fact table for NYC taxi trips.

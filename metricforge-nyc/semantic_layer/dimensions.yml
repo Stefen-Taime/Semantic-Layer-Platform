@@ -1,0 +1,67 @@
+dimensions:
+  - name: pickup_zone
+    label: Pickup Zone
+    type: categorical
+    source: metricforge.dim_zone
+    column: zone
+    druid_column: pickup_zone
+    join_name: trips_to_pickup_zone
+    description: Taxi zone where the trip started.
+
+  - name: pickup_borough
+    label: Pickup Borough
+    type: categorical
+    source: metricforge.dim_zone
+    column: borough
+    druid_column: pickup_borough
+    join_name: trips_to_pickup_zone
+    description: Borough of the pickup zone.
+
+  - name: dropoff_zone
+    label: Dropoff Zone
+    type: categorical
+    source: metricforge.dim_zone
+    column: zone
+    druid_column: dropoff_zone
+    join_name: trips_to_dropoff_zone
+    description: Taxi zone where the trip ended.
+
+  - name: dropoff_borough
+    label: Dropoff Borough
+    type: categorical
+    source: metricforge.dim_zone
+    column: borough
+    druid_column: dropoff_borough
+    join_name: trips_to_dropoff_zone
+    description: Borough of the dropoff zone.
+
+  - name: payment_type
+    label: Payment Type
+    type: categorical
+    source: metricforge.dim_payment_type
+    column: payment_type_name
+    druid_column: payment_type_name
+    join_name: trips_to_payment_type
+    description: Standardized payment type label.
+
+  - name: pickup_date
+    label: Pickup Date
+    type: temporal
+    source: metricforge.fct_taxi_trips
+    column: pickup_date
+    druid_column: pickup_date
+    description: Pickup calendar date.
+
+  - name: pickup_month
+    label: Pickup Month
+    type: numeric
+    source: metricforge.fct_taxi_trips
+    column: pickup_month
+    description: Pickup month number.
+
+  - name: pickup_day
+    label: Pickup Day
+    type: numeric
+    source: metricforge.fct_taxi_trips
+    column: pickup_day
+    description: Pickup day of month.

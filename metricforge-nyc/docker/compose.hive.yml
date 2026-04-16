@@ -1,0 +1,44 @@
+services:
+  hive-metastore-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hive_metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+    env_file:
+      - ./env/hive.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - hive_metastore_postgres_data:/var/lib/postgresql/data
+    networks:
+      - metricforge_net
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    env_file:
+      - ./env/hive.env
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /hive_custom_conf
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-postgres:5432/hive_metastore
+        -Djavax.jdo.option.ConnectionUserName=hive
+        -Djavax.jdo.option.ConnectionPassword=hive
+    depends_on:
+      hive-metastore-postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "9083:9083"
+    volumes:
+      - ./hive/hive-site.xml:/hive_custom_conf/hive-site.xml:ro
+      - ./hive/metastore-site.xml:/hive_custom_conf/metastore-site.xml:ro
+      - app_logs:/opt/hive/logs
+    networks:
+      - metricforge_net

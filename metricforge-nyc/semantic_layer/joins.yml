@@ -1,0 +1,21 @@
+joins:
+  - name: trips_to_pickup_zone
+    from_table: metricforge.fct_taxi_trips
+    from_column: pickup_location_id
+    to_table: metricforge.dim_zone
+    to_column: location_id
+    join_type: left
+
+  - name: trips_to_dropoff_zone
+    from_table: metricforge.fct_taxi_trips
+    from_column: dropoff_location_id
+    to_table: metricforge.dim_zone
+    to_column: location_id
+    join_type: left
+
+  - name: trips_to_payment_type
+    from_table: metricforge.fct_taxi_trips
+    from_column: payment_type_id
+    to_table: metricforge.dim_payment_type
+    to_column: payment_type_id
+    join_type: left

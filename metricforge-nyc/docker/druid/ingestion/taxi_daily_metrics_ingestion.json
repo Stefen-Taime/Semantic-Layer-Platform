@@ -1,0 +1,44 @@
+{
+  "type": "index_parallel",
+  "spec": {
+    "dataSchema": {
+      "dataSource": "metricforge_taxi_daily_metrics",
+      "timestampSpec": {
+        "column": "pickup_date",
+        "format": "auto"
+      },
+      "dimensionsSpec": {
+        "dimensions": [
+          "pickup_borough",
+          "payment_type_name"
+        ]
+      },
+      "metricsSpec": [
+        {"type": "longSum", "name": "completed_trips", "fieldName": "completed_trips"},
+        {"type": "doubleSum", "name": "gross_revenue", "fieldName": "gross_revenue"},
+        {"type": "doubleSum", "name": "total_tip_amount", "fieldName": "total_tip_amount"},
+        {"type": "doubleSum", "name": "average_fare", "fieldName": "average_fare"},
+        {"type": "doubleSum", "name": "average_trip_distance", "fieldName": "average_trip_distance"}
+      ],
+      "granularitySpec": {
+        "segmentGranularity": "DAY",
+        "queryGranularity": "DAY",
+        "rollup": false
+      }
+    },
+    "ioConfig": {
+      "type": "index_parallel",
+      "inputSource": {
+        "type": "local",
+        "baseDir": "/opt/metricforge/druid/input",
+        "filter": "taxi_daily_metrics*.json"
+      },
+      "inputFormat": {
+        "type": "json"
+      }
+    },
+    "tuningConfig": {
+      "type": "index_parallel"
+    }
+  }
+}

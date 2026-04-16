@@ -1,0 +1,4 @@
+{
+  "query": "SELECT TIME_FLOOR(__time, 'P1D') AS metric_date, SUM(gross_revenue) AS gross_revenue FROM metricforge_taxi_daily_metrics WHERE __time >= TIMESTAMP '2024-01-01' AND __time < TIMESTAMP '2024-02-01' GROUP BY 1 ORDER BY 1",
+  "resultFormat": "object"
+}

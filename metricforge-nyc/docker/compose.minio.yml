@@ -1,0 +1,28 @@
+services:
+  minio:
+    image: minio/minio:latest
+    env_file:
+      - ./env/minio.env
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - metricforge_net
+
+  minio-init:
+    image: minio/mc:latest
+    env_file:
+      - ./env/minio.env
+    depends_on:
+      - minio
+    volumes:
+      - ./minio/init-minio.sh:/init-minio.sh:ro
+    entrypoint:
+      - /bin/sh
+      - /init-minio.sh
+    networks:
+      - metricforge_net
+    restart: "no"

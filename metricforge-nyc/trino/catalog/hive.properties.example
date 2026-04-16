@@ -1,0 +1,5 @@
+connector.name=hive
+hive.metastore.uri=thrift://localhost:9083
+hive.security=allow-all
+hive.non-managed-table-writes-enabled=true
+fs.native-local.enabled=true

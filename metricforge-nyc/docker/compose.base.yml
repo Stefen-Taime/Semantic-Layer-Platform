@@ -1,0 +1,11 @@
+networks:
+  metricforge_net:
+    driver: bridge
+
+volumes:
+  minio_data:
+  hive_metastore_postgres_data:
+  trino_data:
+  airflow_postgres_data:
+  druid_data:
+  app_logs:

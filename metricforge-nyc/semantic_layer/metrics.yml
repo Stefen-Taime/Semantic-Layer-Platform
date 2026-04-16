@@ -1,0 +1,221 @@
+metrics:
+  - name: completed_trips
+    label: Completed Trips
+    description: Count of valid completed taxi trips.
+    owner: operations
+    type: count
+    source: metricforge.fct_taxi_trips
+    measure: trip_id
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: gross_revenue
+    label: Gross Revenue
+    description: Sum of total_amount for valid trips.
+    owner: finance
+    type: sum
+    source: metricforge.fct_taxi_trips
+    measure: total_amount
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: average_fare
+    label: Average Fare
+    description: Average fare amount for valid trips.
+    owner: finance
+    type: average
+    source: metricforge.fct_taxi_trips
+    measure: fare_amount
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: average_tip
+    label: Average Tip
+    description: Average tip amount for valid trips.
+    owner: finance
+    type: average
+    source: metricforge.fct_taxi_trips
+    measure: tip_amount
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: total_tip_amount
+    label: Total Tip Amount
+    description: Total tip amount across valid trips.
+    owner: finance
+    type: sum
+    source: metricforge.fct_taxi_trips
+    measure: tip_amount
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: tip_rate
+    label: Tip Rate
+    description: Ratio of total tip amount to gross revenue.
+    owner: finance
+    type: ratio
+    source: metricforge.fct_taxi_trips
+    time_dimension: pickup_datetime
+    numerator: total_tip_amount
+    denominator: gross_revenue
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: average_trip_distance
+    label: Average Trip Distance
+    description: Average trip distance for valid trips.
+    owner: operations
+    type: average
+    source: metricforge.fct_taxi_trips
+    measure: trip_distance
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: average_trip_duration
+    label: Average Trip Duration
+    description: Average trip duration in minutes for valid trips.
+    owner: operations
+    type: average
+    source: metricforge.fct_taxi_trips
+    measure: trip_duration_minutes
+    time_dimension: pickup_datetime
+    filters:
+      - field: is_valid_trip
+        operator: "="
+        value: true
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - dropoff_zone
+      - dropoff_borough
+      - payment_type
+      - pickup_date
+      - pickup_month
+      - pickup_day
+    serving:
+      preferred_engine: trino
+
+  - name: daily_zone_revenue
+    label: Daily Zone Revenue
+    description: Pre-aggregated gross revenue by pickup zone and day for OLAP serving.
+    owner: finance
+    type: sum
+    source: metricforge.fct_taxi_trips
+    measure: gross_revenue
+    time_dimension: pickup_datetime
+    allowed_dimensions:
+      - pickup_zone
+      - pickup_borough
+      - pickup_date
+    serving:
+      preferred_engine: druid
+      druid_datasource: metricforge_taxi_zone_metrics
+
+  - name: daily_completed_trips
+    label: Daily Completed Trips
+    description: Pre-aggregated completed trips by day for OLAP serving.
+    owner: operations
+    type: sum
+    source: metricforge.fct_taxi_trips
+    measure: completed_trips
+    time_dimension: pickup_datetime
+    allowed_dimensions:
+      - pickup_borough
+      - payment_type
+      - pickup_date
+    serving:
+      preferred_engine: druid
+      druid_datasource: metricforge_taxi_daily_metrics

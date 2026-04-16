@@ -1,0 +1,22 @@
+services:
+  trino:
+    image: trinodb/trino:latest
+    env_file:
+      - ./env/trino.env
+    depends_on:
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+      hive-metastore:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./trino/config.properties:/etc/trino/config.properties:ro
+      - ./trino/jvm.config:/etc/trino/jvm.config:ro
+      - ./trino/node.properties:/etc/trino/node.properties:ro
+      - ./trino/catalog:/etc/trino/catalog:ro
+      - trino_data:/data/trino
+    networks:
+      - metricforge_net

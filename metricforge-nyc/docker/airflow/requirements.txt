@@ -1,0 +1,7 @@
+requests
+pyyaml
+trino
+pandas
+pyspark
+apache-airflow-providers-http
+apache-airflow-providers-postgres

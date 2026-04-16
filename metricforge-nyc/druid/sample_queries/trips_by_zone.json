@@ -1,0 +1,4 @@
+{
+  "query": "SELECT TIME_FLOOR(__time, 'P1D') AS metric_date, pickup_zone, SUM(completed_trips) AS completed_trips FROM metricforge_taxi_zone_metrics WHERE __time >= TIMESTAMP '2024-01-01' AND __time < TIMESTAMP '2024-02-01' GROUP BY 1, 2 ORDER BY 1, 2",
+  "resultFormat": "object"
+}

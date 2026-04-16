@@ -1,0 +1,275 @@
+networks:
+  metricforge_net:
+    driver: bridge
+
+volumes:
+  minio_data:
+  hive_metastore_postgres_data:
+  trino_data:
+  airflow_postgres_data:
+  druid_data:
+  app_logs:
+
+services:
+  minio:
+    image: minio/minio:latest
+    env_file:
+      - ./env/minio.env
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - metricforge_net
+
+  minio-init:
+    image: minio/mc:latest
+    env_file:
+      - ./env/minio.env
+    depends_on:
+      - minio
+    volumes:
+      - ./minio/init-minio.sh:/init-minio.sh:ro
+    entrypoint:
+      - /bin/sh
+      - /init-minio.sh
+    networks:
+      - metricforge_net
+    restart: "no"
+
+  hive-metastore-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hive_metastore
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+    env_file:
+      - ./env/hive.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - hive_metastore_postgres_data:/var/lib/postgresql/data
+    networks:
+      - metricforge_net
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    env_file:
+      - ./env/hive.env
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      HIVE_CUSTOM_CONF_DIR: /hive_custom_conf
+      SERVICE_OPTS: >-
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-postgres:5432/hive_metastore
+        -Djavax.jdo.option.ConnectionUserName=hive
+        -Djavax.jdo.option.ConnectionPassword=hive
+    depends_on:
+      hive-metastore-postgres:
+        condition: service_started
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "9083:9083"
+    volumes:
+      - ./hive/hive-site.xml:/hive_custom_conf/hive-site.xml:ro
+      - ./hive/metastore-site.xml:/hive_custom_conf/metastore-site.xml:ro
+      - app_logs:/opt/hive/logs
+    networks:
+      - metricforge_net
+
+  trino:
+    image: trinodb/trino:latest
+    env_file:
+      - ./env/trino.env
+    depends_on:
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
+      hive-metastore:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./trino/config.properties:/etc/trino/config.properties:ro
+      - ./trino/jvm.config:/etc/trino/jvm.config:ro
+      - ./trino/node.properties:/etc/trino/node.properties:ro
+      - ./trino/catalog:/etc/trino/catalog:ro
+      - trino_data:/data/trino
+    networks:
+      - metricforge_net
+
+  druid:
+    image: apache/druid:latest
+    env_file:
+      - ./druid/environment
+    ports:
+      - "8888:8888"
+      - "8082:8082"
+    volumes:
+      - druid_data:/opt/druid/var
+      - ./druid:/opt/metricforge/docker-druid:ro
+      - ../druid/ingestion_specs:/opt/metricforge/druid/ingestion_specs:ro
+      - ../druid/sample_queries:/opt/metricforge/druid/sample_queries:ro
+    command: >
+      /bin/bash -lc "
+      echo 'Starting Apache Druid single-server quickstart for MetricForge NYC' &&
+      bin/start-druid single-server ${DRUID_SINGLE_NODE_CONF:-nano-quickstart}
+      "
+    networks:
+      - metricforge_net
+
+  airflow-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5434:5432"
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    networks:
+      - metricforge_net
+
+  airflow-init:
+    build:
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
+    env_file:
+      - ./airflow/airflow.env
+    depends_on:
+      airflow-postgres:
+        condition: service_started
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/include:/opt/airflow/include
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../semantic_layer:/opt/airflow/semantic_layer
+      - ../spark:/opt/airflow/spark
+      - ../druid:/opt/airflow/druid
+      - ../scripts:/opt/airflow/scripts
+      - app_logs:/opt/airflow/logs
+    command: >
+      bash -lc "
+      airflow db migrate &&
+      airflow users create
+      --username admin
+      --password admin
+      --firstname Metric
+      --lastname Forge
+      --role Admin
+      --email admin@example.com
+      "
+    networks:
+      - metricforge_net
+    restart: "no"
+
+  airflow-webserver:
+    build:
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
+    env_file:
+      - ./airflow/airflow.env
+    depends_on:
+      airflow-postgres:
+        condition: service_started
+      airflow-init:
+        condition: service_completed_successfully
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/include:/opt/airflow/include
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../semantic_layer:/opt/airflow/semantic_layer
+      - ../spark:/opt/airflow/spark
+      - ../druid:/opt/airflow/druid
+      - ../scripts:/opt/airflow/scripts
+      - app_logs:/opt/airflow/logs
+    command: webserver
+    networks:
+      - metricforge_net
+
+  airflow-scheduler:
+    build:
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
+    env_file:
+      - ./airflow/airflow.env
+    depends_on:
+      airflow-postgres:
+        condition: service_started
+      airflow-init:
+        condition: service_completed_successfully
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../airflow/include:/opt/airflow/include
+      - ../airflow/plugins:/opt/airflow/plugins
+      - ../semantic_layer:/opt/airflow/semantic_layer
+      - ../spark:/opt/airflow/spark
+      - ../druid:/opt/airflow/druid
+      - ../scripts:/opt/airflow/scripts
+      - app_logs:/opt/airflow/logs
+    command: scheduler
+    networks:
+      - metricforge_net
+
+  metricforge-api:
+    build:
+      context: ..
+      dockerfile: docker/apps/api.Dockerfile
+    env_file:
+      - ./env/apps.env
+    environment:
+      SEMANTIC_LAYER_PATH: /app/semantic_layer
+      QUERY_ENGINE: trino
+      TRINO_HOST: trino
+      TRINO_PORT: 8080
+      TRINO_USER: metricforge
+      TRINO_CATALOG: hive
+      TRINO_SCHEMA: metricforge
+      DRUID_BROKER_URL: http://druid:8888
+      DRUID_DEFAULT_DATASOURCE: metricforge_taxi_daily_metrics
+    depends_on:
+      trino:
+        condition: service_started
+      druid:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../semantic_layer:/app/semantic_layer
+      - ../metrics_engine:/app/metrics_engine
+      - ../api:/app/api
+      - ../spark:/app/spark
+      - app_logs:/app/logs
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - metricforge_net
+
+  metricforge-dashboard:
+    build:
+      context: ..
+      dockerfile: docker/apps/dashboard.Dockerfile
+    env_file:
+      - ./env/apps.env
+    environment:
+      METRICFORGE_API_URL: http://metricforge-api:8000
+    depends_on:
+      metricforge-api:
+        condition: service_started
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../dashboard:/app/dashboard
+      - app_logs:/app/logs
+    command: streamlit run dashboard/app.py --server.address 0.0.0.0 --server.port 8501
+    networks:
+      - metricforge_net
