@@ -13,9 +13,11 @@ import requests
 
 try:
     from airflow import DAG
+    from airflow.operators.bash import BashOperator
     from airflow.operators.python import PythonOperator
 except ImportError:  # pragma: no cover - optional dependency for this stage
     DAG = None
+    BashOperator = None
     PythonOperator = None
 
 
@@ -54,13 +56,6 @@ def _check_metricforge_api() -> None:
 
 def _run_spark_script(script_name: str) -> None:
     script_path = f"/opt/airflow/spark/{script_name}"
-    run_real_spark = os.getenv("METRICFORGE_RUN_SPARK_IN_AIRFLOW", "false").lower() == "true"
-    if not run_real_spark:
-        print(
-            "Airflow demo mode: Spark execution inside the container is disabled by default."
-        )
-        print(f"Would run: python {script_path}")
-        return
     subprocess.run(["python", script_path], check=True)
 
 
@@ -114,7 +109,7 @@ def _run_sample_metric_query() -> None:
     print(f"Sample metric query response: {response.json()}")
 
 
-if DAG and PythonOperator:
+if DAG and PythonOperator and BashOperator:
     with DAG(
         dag_id="metricforge_full_pipeline",
         description="Minerva-like orchestration DAG for the full MetricForge NYC demo",
@@ -132,6 +127,10 @@ if DAG and PythonOperator:
         check_metricforge_api = PythonOperator(
             task_id="check_metricforge_api",
             python_callable=_check_metricforge_api,
+        )
+        load_source_files_to_minio = BashOperator(
+            task_id="load_source_files_to_minio",
+            bash_command="python /opt/airflow/scripts/load_nyc_taxi_to_minio.py",
         )
         ingest_nyc_taxi_data = PythonOperator(
             task_id="ingest_nyc_taxi_data",
@@ -158,10 +157,11 @@ if DAG and PythonOperator:
             python_callable=_run_sample_metric_query,
         )
 
-        check_minio >> ingest_nyc_taxi_data
+        check_minio >> load_source_files_to_minio
         check_hive_metastore >> build_certified_tables
         check_trino >> check_metricforge_api
         check_metricforge_api >> validate_semantic_layer
+        load_source_files_to_minio >> ingest_nyc_taxi_data
         ingest_nyc_taxi_data >> build_certified_tables
         build_certified_tables >> validate_semantic_layer
         validate_semantic_layer >> generate_metric_catalog

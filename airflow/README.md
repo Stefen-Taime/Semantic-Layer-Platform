@@ -11,4 +11,4 @@ DAGs principaux :
 - `refresh_metric_catalog.py`
 - `refresh_druid_datasources.py`
 
-Pour la démo finale, Airflow fait partie de la stack cible. Les tâches Spark lourdes restent désactivées par défaut dans le conteneur Airflow et peuvent être activées si l'environnement a Java + PySpark.
+Pour la démo finale, Airflow fait partie de la stack cible. Airflow orchestre maintenant aussi la première étape `source TLC -> MinIO raw`, puis l'ingestion Spark depuis MinIO vers les tables raw/certifiées.

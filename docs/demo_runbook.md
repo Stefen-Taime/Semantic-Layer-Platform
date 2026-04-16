@@ -38,10 +38,13 @@ bash scripts/check_services.sh
 
 ### 3. Charger les données sources dans MinIO
 
+En mode manuel :
+
 ```bash
-bash scripts/download_nyc_taxi_data.sh
-bash scripts/upload_data_to_minio.sh
+python scripts/load_nyc_taxi_to_minio.py
 ```
+
+En mode orchestré, Airflow exécute cette étape via le DAG `ingest_nyc_taxi_data` ou dans le DAG `metricforge_full_pipeline`.
 
 ### 4. Construire les tables certifiées
 

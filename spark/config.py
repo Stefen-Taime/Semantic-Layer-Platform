@@ -74,9 +74,26 @@ def get_minio_secure() -> bool:
     return os.getenv("MINIO_SECURE", "false").lower() in {"1", "true", "yes"}
 
 
-def get_raw_tripdata_uri() -> str:
-    """Return the S3A URI for the yellow taxi parquet object."""
-    return f"s3a://{get_minio_raw_bucket()}/{get_minio_raw_prefix()}/yellow_tripdata_2024-01.parquet"
+def get_tripdata_months() -> list[str]:
+    """Return the list of TLC Yellow Taxi months expected in raw storage."""
+    raw_value = os.getenv("TLC_TRIPDATA_MONTHS", "2026-01,2026-02")
+    months = [value.strip() for value in raw_value.split(",") if value.strip()]
+    if not months:
+        raise ValueError("TLC_TRIPDATA_MONTHS must contain at least one YYYY-MM entry.")
+    return months
+
+
+def build_tripdata_filename(month: str) -> str:
+    """Return the parquet filename for a TLC Yellow Taxi month."""
+    return f"yellow_tripdata_{month}.parquet"
+
+
+def get_raw_tripdata_uris() -> list[str]:
+    """Return the S3A URIs for the configured Yellow Taxi parquet objects."""
+    return [
+        f"s3a://{get_minio_raw_bucket()}/{get_minio_raw_prefix()}/{build_tripdata_filename(month)}"
+        for month in get_tripdata_months()
+    ]
 
 
 def get_taxi_zone_lookup_uri() -> str:

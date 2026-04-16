@@ -11,7 +11,7 @@ from pyspark.sql import DataFrame, functions as F
 from spark.config import (
     RAW_TRIPS_TABLE,
     RAW_ZONE_LOOKUP_TABLE,
-    get_raw_tripdata_uri,
+    get_raw_tripdata_uris,
     get_taxi_zone_lookup_uri,
 )
 from spark.spark_session import create_spark_session
@@ -19,8 +19,8 @@ from spark.utils import ensure_database_exists, ensure_raw_source_objects_exist
 
 
 def load_trip_data(spark) -> DataFrame:
-    """Read the yellow taxi parquet object from MinIO."""
-    return spark.read.parquet(get_raw_tripdata_uri()).withColumn(
+    """Read the configured Yellow Taxi parquet objects from MinIO."""
+    return spark.read.parquet(*get_raw_tripdata_uris()).withColumn(
         "_source_file",
         F.input_file_name(),
     )
@@ -45,7 +45,9 @@ def main() -> None:
         ensure_database_exists(spark)
         ensure_raw_source_objects_exist(spark)
 
-        print(f"Reading trip data from: {get_raw_tripdata_uri()}")
+        print("Reading trip data from:")
+        for tripdata_uri in get_raw_tripdata_uris():
+            print(f"- {tripdata_uri}")
         print(f"Reading zone lookup from: {get_taxi_zone_lookup_uri()}")
 
         trips_df = load_trip_data(spark)

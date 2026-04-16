@@ -5,6 +5,7 @@ Airflow orchestre le pipeline, mais ne calcule pas lui-même les métriques mét
 ## Ce qu'Airflow fait ici
 
 - vérifie MinIO, Hive Metastore, Trino et l'API
+- télécharge les fichiers TLC sources et les pousse dans MinIO raw
 - déclenche l'ingestion Spark
 - déclenche la construction des tables certifiées
 - valide la semantic layer

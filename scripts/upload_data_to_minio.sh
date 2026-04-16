@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RAW_DIR="${PROJECT_ROOT}/data/raw"
 
-TRIP_FILE="${RAW_DIR}/yellow_tripdata_2024-01.parquet"
+TLC_TRIPDATA_MONTHS="${TLC_TRIPDATA_MONTHS:-2026-01,2026-02}"
 ZONE_FILE="${RAW_DIR}/taxi_zone_lookup.csv"
 
 MINIO_ALIAS="${MINIO_ALIAS:-local}"
@@ -15,10 +15,28 @@ MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-metricforge123}"
 MINIO_RAW_BUCKET="${MINIO_RAW_BUCKET:-metricforge-raw}"
 MINIO_RAW_PREFIX="${MINIO_RAW_PREFIX:-nyc_taxi}"
 
-if [[ ! -f "${TRIP_FILE}" || ! -f "${ZONE_FILE}" ]]; then
+IFS=',' read -r -a TRIP_MONTHS <<< "${TLC_TRIPDATA_MONTHS}"
+
+REQUIRED_TRIP_FILES=()
+for month in "${TRIP_MONTHS[@]}"; do
+  trimmed_month="$(echo "${month}" | xargs)"
+  [[ -z "${trimmed_month}" ]] && continue
+  REQUIRED_TRIP_FILES+=("${RAW_DIR}/yellow_tripdata_${trimmed_month}.parquet")
+done
+
+missing_file=false
+for trip_file in "${REQUIRED_TRIP_FILES[@]}"; do
+  if [[ ! -f "${trip_file}" ]]; then
+    missing_file=true
+  fi
+done
+
+if [[ "${missing_file}" == "true" || ! -f "${ZONE_FILE}" ]]; then
   echo "Required local files are missing."
   echo "Expected:"
-  echo "  - ${TRIP_FILE}"
+  for trip_file in "${REQUIRED_TRIP_FILES[@]}"; do
+    echo "  - ${trip_file}"
+  done
   echo "  - ${ZONE_FILE}"
   exit 1
 fi
@@ -26,7 +44,10 @@ fi
 if command -v mc >/dev/null 2>&1; then
   mc alias set "${MINIO_ALIAS}" "${MINIO_ENDPOINT}" "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
   mc mb --ignore-existing "${MINIO_ALIAS}/${MINIO_RAW_BUCKET}"
-  mc cp "${TRIP_FILE}" "${MINIO_ALIAS}/${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/yellow_tripdata_2024-01.parquet"
+  for trip_file in "${REQUIRED_TRIP_FILES[@]}"; do
+    filename="$(basename "${trip_file}")"
+    mc cp "${trip_file}" "${MINIO_ALIAS}/${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/${filename}"
+  done
   mc cp "${ZONE_FILE}" "${MINIO_ALIAS}/${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/taxi_zone_lookup.csv"
   echo "Uploaded data to s3://${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/"
   exit 0
@@ -34,7 +55,10 @@ fi
 
 if command -v aws >/dev/null 2>&1; then
   aws --endpoint-url "${MINIO_ENDPOINT}" s3 mb "s3://${MINIO_RAW_BUCKET}" || true
-  aws --endpoint-url "${MINIO_ENDPOINT}" s3 cp "${TRIP_FILE}" "s3://${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/yellow_tripdata_2024-01.parquet"
+  for trip_file in "${REQUIRED_TRIP_FILES[@]}"; do
+    filename="$(basename "${trip_file}")"
+    aws --endpoint-url "${MINIO_ENDPOINT}" s3 cp "${trip_file}" "s3://${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/${filename}"
+  done
   aws --endpoint-url "${MINIO_ENDPOINT}" s3 cp "${ZONE_FILE}" "s3://${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/taxi_zone_lookup.csv"
   echo "Uploaded data to s3://${MINIO_RAW_BUCKET}/${MINIO_RAW_PREFIX}/"
   exit 0

@@ -35,7 +35,7 @@ docker compose version
 
 ```bash
 git clone <repo-url>
-cd metricforge-nyc
+cd Semantic-Layer-Platform
 ```
 
 ## Lancer la démo complète

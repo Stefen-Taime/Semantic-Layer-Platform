@@ -39,7 +39,7 @@ Le projet montre :
 Mode de dev pour parser/validator/tests/API/dashboard :
 
 ```bash
-cd metricforge-nyc
+cd Semantic-Layer-Platform
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -80,11 +80,14 @@ docker compose -f docker/compose.demo.yml up -d
 Batch Spark :
 
 ```bash
+python scripts/load_nyc_taxi_to_minio.py
 python spark/01_create_hive_database.py
 python spark/02_ingest_raw_taxi_data.py
 python spark/03_build_certified_tables.py
 python spark/04_run_sample_queries.py
 ```
+
+Dans la stack complète, Airflow orchestre aussi la première étape `source TLC -> MinIO raw`, puis déclenche Spark pour charger les tables raw et certifiées. La liste des mois est dynamique via `TLC_TRIPDATA_MONTHS`, avec comme défaut **2026-01,2026-02**, et `taxi_zone_lookup.csv` reste toujours chargé.
 
 Tests semantic layer :
 

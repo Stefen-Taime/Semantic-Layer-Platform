@@ -3,5 +3,6 @@ pyyaml
 trino
 pandas
 pyspark
+minio
 apache-airflow-providers-http
 apache-airflow-providers-postgres

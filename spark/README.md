@@ -6,6 +6,7 @@ Ce dossier contient la chaîne batch locale du projet.
 
 Spark sert ici à :
 
+- lire des fichiers sources déjà déposés dans MinIO raw par Airflow ou par un script local,
 - lire les objets TLC bruts stockés dans MinIO en Parquet et CSV,
 - écrire des tables Parquet cataloguées localement,
 - écrire les données physiques des tables dans MinIO,
@@ -24,7 +25,7 @@ Le metastore reste embarqué localement pour la démo, mais les données des tab
 
 ## Objets attendus dans MinIO
 
-- `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/yellow_tripdata_2024-01.parquet`
+- `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/yellow_tripdata_<YYYY-MM>.parquet` pour chaque mois listé dans `TLC_TRIPDATA_MONTHS`
 - `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/taxi_zone_lookup.csv`
 
 Si ces objets sont absents, le script `02_ingest_raw_taxi_data.py` arrête l'exécution avec un message clair.
@@ -32,6 +33,7 @@ Si ces objets sont absents, le script `02_ingest_raw_taxi_data.py` arrête l'ex�
 ## Commandes d'exécution
 
 ```bash
+python scripts/load_nyc_taxi_to_minio.py
 python spark/01_create_hive_database.py
 python spark/02_ingest_raw_taxi_data.py
 python spark/03_build_certified_tables.py
@@ -63,6 +65,7 @@ python spark/04_run_sample_queries.py
 - `MINIO_RAW_PREFIX` : défaut `nyc_taxi`
 - `MINIO_SECURE` : défaut `false`
 - `MINIO_REGION` : défaut `us-east-1`
+- `TLC_TRIPDATA_MONTHS` : défaut `2026-01,2026-02`
 - `SPARK_JARS_PACKAGES` : packages Hadoop AWS/AWS SDK compatibles avec votre build Spark
 
 ## Note importante

@@ -6,7 +6,7 @@ from typing import Iterable, Mapping, Sequence
 from spark.config import (
     DATABASE_NAME,
     get_database_location,
-    get_raw_tripdata_uri,
+    get_raw_tripdata_uris,
     get_taxi_zone_lookup_uri,
     get_warehouse_uri,
 )
@@ -35,15 +35,16 @@ def normalize_columns(df, rename_map: Mapping[str, str] | None = None):
 def build_missing_input_message(missing_uris: Iterable[str]) -> str:
     """Build a clear error message for missing MinIO source objects."""
     missing_list = "\n".join(f"- {uri}" for uri in missing_uris)
+    expected_trip_files = "\n".join(f"- {uri}" for uri in get_raw_tripdata_uris())
     return (
         "Required MinIO source objects were not found.\n"
         f"{missing_list}\n\n"
         "Expected MinIO objects:\n"
-        f"- {get_raw_tripdata_uri()}\n"
+        f"{expected_trip_files}\n"
         f"- {get_taxi_zone_lookup_uri()}\n\n"
         "Upload guidance:\n"
-        "- Review scripts/download_nyc_taxi_data.sh\n"
-        "- Create the bucket and upload the two source files under the raw/ prefix\n"
+        "- Review scripts/load_nyc_taxi_to_minio.py or scripts/download_nyc_taxi_data.sh\n"
+        "- Upload the two configured monthly parquet files plus taxi_zone_lookup.csv under the raw prefix\n"
     )
 
 
@@ -67,7 +68,7 @@ def ensure_path_exists(spark, uri: str) -> None:
 
 def ensure_raw_source_objects_exist(spark) -> None:
     """Raise an explicit error if the required MinIO objects are missing."""
-    required_uris = [get_raw_tripdata_uri(), get_taxi_zone_lookup_uri()]
+    required_uris = [*get_raw_tripdata_uris(), get_taxi_zone_lookup_uri()]
     missing_uris = [uri for uri in required_uris if not path_exists(spark, uri)]
     if missing_uris:
         raise FileNotFoundError(build_missing_input_message(missing_uris))

@@ -10,17 +10,18 @@ MetricForge NYC reprend l'esprit d'une mini metrics platform inspirée de Minerv
                      +-----------+------------+
                                  |
                                  v
+                       +----------------------+
+                       |       Airflow        |
+                       | orchestration DAGs   |
+                       +----------+-----------+
+                                  |
+                                  v
                      +------------------------+
                      |   MinIO raw bucket     |
                      |  metricforge-raw/...   |
                      +-----------+------------+
                                  |
                                  v
-                       +----------------------+
-                       |       Airflow        |
-                       | orchestration DAGs   |
-                       +----------+-----------+
-                                  |
                  +----------------+----------------+
                  |                                 |
                  v                                 v

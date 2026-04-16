@@ -19,7 +19,7 @@ echo "2. Install dependencies"
 echo "   pip install -r requirements.txt"
 echo
 echo "3. Ensure MinIO contains the raw source files"
-echo "   bash scripts/download_nyc_taxi_data.sh"
+echo "   python scripts/load_nyc_taxi_to_minio.py"
 echo
 echo "4. Start the API"
 echo "   uvicorn api.main:app --reload"

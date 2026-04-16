@@ -8,6 +8,7 @@ streamlit
 pytest
 requests
 trino
+minio
 
 # Optional dependencies for later prompts
 # apache-airflow
