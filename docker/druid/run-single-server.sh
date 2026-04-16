@@ -31,10 +31,10 @@ start_process() {
 trap terminate_children EXIT INT TERM
 
 start_process "zookeeper" 10 bin/run-zk conf
-start_process "coordinator-overlord" 15 /druid.sh coordinator-overlord
-start_process "historical" 10 /druid.sh historical
-start_process "broker" 10 /druid.sh broker
-start_process "middleManager" 10 /druid.sh middleManager
-start_process "router" 10 /druid.sh router
+start_process "coordinator-overlord" 15 bin/run-druid coordinator-overlord "${CONFIG_ROOT}"
+start_process "historical" 10 bin/run-druid historical "${CONFIG_ROOT}"
+start_process "broker" 10 bin/run-druid broker "${CONFIG_ROOT}"
+start_process "middleManager" 10 bin/run-druid middleManager "${CONFIG_ROOT}"
+start_process "router" 10 bin/run-druid router "${CONFIG_ROOT}"
 
 wait -n
