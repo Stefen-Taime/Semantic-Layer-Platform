@@ -19,23 +19,22 @@ terminate_children() {
 
 start_process() {
   local name="$1"
-  shift
+  local warmup_seconds="$2"
+  shift 2
 
   echo "Launching ${name}"
   "$@" &
   PIDS+=("$!")
+  sleep "${warmup_seconds}"
 }
 
 trap terminate_children EXIT INT TERM
 
-start_process "zookeeper" bin/run-zk conf
-sleep 5
-start_process "coordinator-overlord" /druid.sh coordinator-overlord
-sleep 5
-start_process "historical" /druid.sh historical
-start_process "broker" /druid.sh broker
-start_process "middleManager" /druid.sh middleManager
-sleep 5
-start_process "router" /druid.sh router
+start_process "zookeeper" 10 bin/run-zk conf
+start_process "coordinator-overlord" 15 /druid.sh coordinator-overlord
+start_process "historical" 10 /druid.sh historical
+start_process "broker" 10 /druid.sh broker
+start_process "middleManager" 10 /druid.sh middleManager
+start_process "router" 10 /druid.sh router
 
 wait -n
