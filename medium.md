@@ -96,6 +96,8 @@ Fix: a two-line bash entrypoint that copies the jars from `/opt/hadoop/share/had
 
 Once that was fixed, the entire storage/compute layer came alive. One Parquet table, written by Spark, readable by Trino, readable by Spark again from another container. The lakehouse was real.
 
+![The MinIO warehouse bucket — raw, curated, and certified tables living in a single object store, readable by every engine in the stack.](img/minio-warehouse.png)
+
 ---
 
 ## Act II: The partition that broke production (twice)
@@ -107,6 +109,8 @@ First query through Druid: well, there was no Druid yet.
 First glance at the Spark UI: 280 tasks, all reading full files. Fine for a demo, catastrophic at scale.
 
 I added partitioning by `pickup_year` and `pickup_month`. Rewrote the certified job. Ran the pipeline. Trino queries dropped to under a second. Victory.
+
+![Trino query history: the same certified fact table answering joins and aggregates in hundreds of milliseconds once partitioning was right.](img/trino-query-history.png)
 
 Three hours later, I ran the pipeline *again* with new data, and discovered that Spark's partition overwrite semantics were deleting the old partitions silently. Half my history was gone. I had two options: cry, or read the Spark documentation properly.
 
@@ -166,7 +170,13 @@ The routing logic is simple in principle:
 
 Every metric in the YAML declares where it can be served. The API picks the right engine automatically, or obeys a caller override. The dashboard lets the analyst flip between engines in a radio button and *see* the same number, computed from the same definition, arriving from a different back-end.
 
+![The FastAPI contract: a single `POST /query` endpoint is the only door into the semantic layer. Everything downstream — dashboards, notebooks, LLM agents — goes through it.](img/fastapi-swagger.png)
+
+![`GET /metrics` returns the governed catalog with owner, description, allowed dimensions, and serving engine for each metric. The contract is discoverable.](img/api-metrics-response.png)
+
 That moment — seeing identical numbers appear in 800ms on Druid and 2.4s on Trino, from the same metric key — is when I understood why Airbnb built Minerva. It is not a query engine. It is a **trust engine**.
+
+![The same `/query` payload, with `limit` and `order_by`, returning an average-tip ranking in Trino — SQL is generated from the YAML, not written by hand.](img/api-query-average-tip.png)
 
 ---
 
@@ -179,6 +189,8 @@ To make a metric fast on Druid, you do not just point Druid at your fact table. 
 That is seven moving parts for one metric.
 
 I wrote a Spark job — `04_build_druid_aggregates.py` — that reads the certified fact table, computes two rollups (daily metrics, zone metrics), and writes JSON to a volume mounted in both Airflow and Druid. An Airflow DAG runs the Spark job, then POSTs the ingestion specs to the Druid Overlord.
+
+![Two Druid datasources — `metricforge_taxi_daily_metrics` and `metricforge_taxi_zone_metrics` — with their pre-aggregated dimensions and measures ready to serve queries in milliseconds.](img/druid-console.png)
 
 First run: permission denied. The shared volume was owned by Druid's UID (1000). Airflow runs as UID 50000. Neither could see the other's files.
 
@@ -206,6 +218,8 @@ order_by: [{column: daily_zone_revenue, direction: desc}]
 
 I ran the same payload against Trino. Identical numbers, 2.3 seconds.
 
+![The live `/query` endpoint hitting Druid: top boroughs by daily completed trips, answered in ~200 ms with SQL generated straight from the semantic layer.](img/api-query-druid-top-boroughs.png)
+
 **Lesson #4**: Pre-aggregation is not an optimisation. It is a *product decision*. You are trading freshness, flexibility, and storage for speed. The semantic layer is the right place to make that trade explicitly, metric by metric.
 
 ---
@@ -224,6 +238,8 @@ I rewrote it. Dark gradient background. Glassmorphic cards with blurred backdrop
 Engine pills colour-coded by backend (Druid cyan, Trino amber, Spark orange) so the analyst always knows which brain computed the answer. KPI tiles on top: Total, Mean, Max, Min. A one-click CSV download below the chart. The generated SQL visible side-by-side with the data, because analysts always, *always* want to see the SQL.
 
 It is still a single Python file. It is under 700 lines. It runs on a single Streamlit container. And it feels like a product.
+
+![The governed catalog inside the dashboard: ten metrics, their owners, descriptions, allowed dimensions. Not a spreadsheet. A contract.](img/dashboard-catalog.png)
 
 **Lesson #5**: Governance without usability is a private members' club. If the dashboard is ugly, analysts will export the data and build their own charts in Excel, and you are back at square one.
 
@@ -251,6 +267,10 @@ End-to-end pipeline for a month of taxi data: 4 minutes on Spark, 30 seconds on 
 Dashboard query against Druid: 150-300 ms.
 Dashboard query against Trino: 1-3 seconds.
 Monthly cost: less than a good dinner in Manhattan.
+
+![Airflow orchestrates the whole thing: ingest → build certified tables → rebuild the metric catalog → refresh Druid → validate the semantic layer. Every run is auditable.](img/airflow-dags.png)
+
+![The VM itself during a full pipeline run — modest CPU, disciplined disk throughput. Minerva-like discipline on a single `e2-standard-8`.](img/gcp-vm-monitoring.png)
 
 Ten governed metrics. Seven dimensions. Two Druid datasources. One semantic layer. One API. One number per question.
 
