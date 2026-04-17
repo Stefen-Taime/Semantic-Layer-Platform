@@ -1,6 +1,6 @@
 # How I Rebuilt Airbnb's Minerva with Open Source — and What It Taught Me About Metrics That Actually Ship
 
-*A storytelling walkthrough of MetricForge NYC: a self-hosted semantic layer powered by MinIO, Spark, Hive, Trino, Druid, Airflow, FastAPI, Streamlit — and a lot of humility.*
+*A storytelling walkthrough of a semantic layer like Airbnb's in-house one called Minerva: a self-hosted semantic layer powered by MinIO, Spark, Hive, Trino, Druid, Airflow, FastAPI, Streamlit — and a lot of humility.*
 
 ---
 
