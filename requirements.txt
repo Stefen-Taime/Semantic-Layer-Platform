@@ -5,6 +5,7 @@ pyspark
 pyyaml
 pandas
 streamlit
+plotly
 pytest
 requests
 trino
