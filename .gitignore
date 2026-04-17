@@ -36,3 +36,6 @@ derby.log
 *.tfstate.backup
 terraform.tfvars
 terraform.tfvars.json
+
+# Drafts
+medium.md
