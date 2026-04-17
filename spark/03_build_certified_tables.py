@@ -150,7 +150,16 @@ def main() -> None:
 
         zone_dim_df.write.mode("overwrite").format("parquet").saveAsTable(DIM_ZONE_TABLE)
         payment_dim_df.write.mode("overwrite").format("parquet").saveAsTable(DIM_PAYMENT_TYPE_TABLE)
-        fact_trips_df.write.mode("overwrite").format("parquet").saveAsTable(FACT_TRIPS_TABLE)
+        # Partition the main fact table by pickup_year / pickup_month so that
+        # downstream engines (Trino, Spark, Druid ingestion) can prune partitions
+        # when queries filter on pickup_datetime / pickup_date.
+        (
+            fact_trips_df.write
+            .mode("overwrite")
+            .format("parquet")
+            .partitionBy("pickup_year", "pickup_month")
+            .saveAsTable(FACT_TRIPS_TABLE)
+        )
         date_dim_df.write.mode("overwrite").format("parquet").saveAsTable(DIM_DATE_TABLE)
 
         print(f"Wrote table: {DIM_ZONE_TABLE}")

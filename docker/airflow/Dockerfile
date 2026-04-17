@@ -10,6 +10,9 @@ RUN apt-get update \
       -o "/opt/spark-extra-jars/hadoop-aws-${HADOOP_AWS_VERSION}.jar" \
     && curl -fL "https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/${AWS_SDK_BUNDLE_VERSION}/bundle-${AWS_SDK_BUNDLE_VERSION}.jar" \
       -o "/opt/spark-extra-jars/bundle-${AWS_SDK_BUNDLE_VERSION}.jar" \
+    && mkdir -p /opt/airflow/include \
+    && chown -R airflow:root /opt/airflow/include \
+    && chmod -R g+rwX /opt/airflow/include \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64

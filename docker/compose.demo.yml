@@ -63,6 +63,9 @@ services:
 
   hive-metastore:
     image: apache/hive:4.0.0
+    # Run as root so the entrypoint below can copy jars into /opt/hive/lib/.
+    # The hive runtime internally switches back to the hive user for the metastore process.
+    user: "0:0"
     env_file:
       - ./env/hive.env
     environment:
@@ -74,6 +77,18 @@ services:
         -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-postgres:5432/hive_metastore
         -Djavax.jdo.option.ConnectionUserName=hive
         -Djavax.jdo.option.ConnectionPassword=hive
+    # Copy hadoop-aws + aws-java-sdk-bundle jars (already shipped in the image under
+    # /opt/hadoop/share/hadoop/tools/lib) into /opt/hive/lib so the metastore JVM can
+    # resolve s3a:// URIs when clients (Spark/Trino) register tables backed by MinIO.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        cp -n /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-*.jar /opt/hive/lib/ || true
+        cp -n /opt/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar /opt/hive/lib/ || true
+        exec /entrypoint.sh "$@"
+      - --
     depends_on:
       hive-metastore-postgres:
         condition: service_started
@@ -84,6 +99,7 @@ services:
     ports:
       - "9083:9083"
     volumes:
+      - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar:ro
       - ./hive/hive-site.xml:/hive_custom_conf/hive-site.xml:ro
       - ./hive/metastore-site.xml:/hive_custom_conf/metastore-site.xml:ro
       - app_logs:/opt/hive/logs

@@ -41,6 +41,7 @@ def get_spark_runtime_settings() -> Dict[str, Any]:
         "minio_secure": get_minio_secure(),
         "jars_packages": os.getenv("SPARK_JARS_PACKAGES", ""),
         "extra_jars_dir": os.getenv("SPARK_EXTRA_JARS_DIR", "").strip(),
+        "hive_metastore_uri": os.getenv("HIVE_METASTORE_URI", "").strip(),
     }
 
 
@@ -82,6 +83,14 @@ def create_spark_session(app_name: str = "MetricForgeNYC") -> "SparkSession":
         .config("spark.driver.extraJavaOptions", f"-Dderby.system.home={_quote_for_java(derby_home)}")
         .config("spark.executor.extraJavaOptions", f"-Dderby.system.home={_quote_for_java(derby_home)}")
     )
+
+    # If a remote Thrift Hive metastore is configured (HIVE_METASTORE_URI),
+    # make Spark register tables there so Trino/Druid can read the same catalog.
+    # Otherwise Spark falls back to the embedded Derby metastore for local laptop runs.
+    # Note: Spark only recognizes Hive metastore settings prefixed with "spark.hadoop.".
+    hive_metastore_uri = settings["hive_metastore_uri"]
+    if hive_metastore_uri:
+        builder = builder.config("spark.hadoop.hive.metastore.uris", hive_metastore_uri)
 
     if settings["jars_packages"]:
         builder = builder.config("spark.jars.packages", settings["jars_packages"])
