@@ -29,7 +29,7 @@
       "type": "index_parallel",
       "inputSource": {
         "type": "local",
-        "baseDir": "/opt/metricforge/druid/input",
+        "baseDir": "/opt/shared/input",
         "filter": "taxi_zone_metrics*.json"
       },
       "inputFormat": {

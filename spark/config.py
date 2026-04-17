@@ -109,3 +109,14 @@ def get_warehouse_uri() -> str:
 def get_database_location() -> str:
     """Return the database location URI for managed MetricForge tables."""
     return f"{get_warehouse_uri().rstrip('/')}/{DATABASE_NAME}.db"
+
+
+def get_druid_input_dir() -> str:
+    """Return the local directory where Druid ingestion JSON files are written.
+
+    This must be mounted inside both the Airflow container (so Spark can write
+    there) and the Druid containers (so Druid ingestion tasks can read from it).
+    Defaults to `/opt/shared/input`, matching the `druid_shared` Docker volume
+    mounted at `/opt/shared` inside every Druid service.
+    """
+    return os.getenv("DRUID_INPUT_DIR", "/opt/shared/input")

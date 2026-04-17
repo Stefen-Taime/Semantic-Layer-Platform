@@ -1,9 +1,20 @@
-"""Airflow DAG for refreshing required Druid datasources."""
+"""Airflow DAG for refreshing required Druid datasources.
+
+The DAG has two sequential steps:
+
+1. build_druid_aggregates: runs the Spark job that writes the pre-aggregated
+   JSON files to the shared `DRUID_INPUT_DIR` (default /opt/shared/input),
+   mounted both in Airflow and in all Druid services via the `druid_shared`
+   volume.
+2. submit_ingestion_specs: POSTs the JSON specs from
+   `druid/ingestion_specs/` to the Druid overlord so Druid ingests the files.
+"""
 
 from __future__ import annotations
 
 import json
 import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -17,7 +28,22 @@ except ImportError:  # pragma: no cover - optional dependency for this stage
     PythonOperator = None
 
 
-def _refresh_druid_datasources() -> None:
+def _build_druid_aggregates() -> None:
+    """Run the Spark job that writes the Druid input JSON files."""
+    script_path = "/opt/airflow/spark/04_build_druid_aggregates.py"
+    run_real_spark = os.getenv("METRICFORGE_RUN_SPARK_IN_AIRFLOW", "false").lower() == "true"
+    if not run_real_spark:
+        print(
+            "Airflow demo mode: Druid pre-aggregates are documented but not "
+            "executed inside the container."
+        )
+        print(f"Would run: python {script_path}")
+        return
+
+    subprocess.run(["python", script_path], check=True)
+
+
+def _submit_druid_specs() -> None:
     """Submit Druid ingestion specs and fail if Druid is not reachable."""
     druid_url = os.getenv("DRUID_BROKER_URL", "http://druid:8888").rstrip("/")
     spec_dir = Path("/opt/airflow/druid/ingestion_specs")
@@ -41,9 +67,14 @@ if DAG and PythonOperator:
         catchup=False,
         tags=["metricforge", "druid", "olap"],
     ) as dag:
-        refresh_task = PythonOperator(
-            task_id="refresh_druid_datasources",
-            python_callable=_refresh_druid_datasources,
+        build_aggregates_task = PythonOperator(
+            task_id="build_druid_aggregates",
+            python_callable=_build_druid_aggregates,
         )
+        submit_specs_task = PythonOperator(
+            task_id="submit_druid_specs",
+            python_callable=_submit_druid_specs,
+        )
+        build_aggregates_task >> submit_specs_task
 else:
     dag = None

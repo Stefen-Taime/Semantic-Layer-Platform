@@ -93,6 +93,10 @@ def _refresh_druid_datasources() -> None:
         print(f"Submitted Druid ingestion spec: {spec_path.name}")
 
 
+def _build_druid_aggregates() -> None:
+    _run_spark_script("04_build_druid_aggregates.py")
+
+
 def _run_sample_metric_query() -> None:
     api_url = os.getenv("METRICFORGE_API_URL", "http://metricforge-api:8000")
     payload = {
@@ -148,6 +152,10 @@ if DAG and PythonOperator and BashOperator:
             task_id="generate_metric_catalog",
             python_callable=_generate_metric_catalog,
         )
+        build_druid_aggregates = PythonOperator(
+            task_id="build_druid_aggregates",
+            python_callable=_build_druid_aggregates,
+        )
         refresh_druid_datasources = PythonOperator(
             task_id="refresh_druid_datasources",
             python_callable=_refresh_druid_datasources,
@@ -165,7 +173,9 @@ if DAG and PythonOperator and BashOperator:
         ingest_nyc_taxi_data >> build_certified_tables
         build_certified_tables >> validate_semantic_layer
         validate_semantic_layer >> generate_metric_catalog
+        build_certified_tables >> build_druid_aggregates
         generate_metric_catalog >> refresh_druid_datasources
+        build_druid_aggregates >> refresh_druid_datasources
         refresh_druid_datasources >> run_sample_metric_query
 else:
     dag = None

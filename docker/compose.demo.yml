@@ -279,6 +279,9 @@ services:
       - ../druid:/opt/airflow/druid
       - ../scripts:/opt/airflow/scripts
       - app_logs:/opt/airflow/logs
+      # Shared with all Druid services so the Spark Druid aggregate job
+      # can write JSON files that the Druid overlord reads from /opt/shared/input.
+      - druid_shared:/opt/shared
     command: >
       bash -lc "
       airflow db migrate &&
@@ -316,6 +319,7 @@ services:
       - ../druid:/opt/airflow/druid
       - ../scripts:/opt/airflow/scripts
       - app_logs:/opt/airflow/logs
+      - druid_shared:/opt/shared
     command: webserver
     networks:
       - metricforge_net
@@ -340,6 +344,7 @@ services:
       - ../druid:/opt/airflow/druid
       - ../scripts:/opt/airflow/scripts
       - app_logs:/opt/airflow/logs
+      - druid_shared:/opt/shared
     command: scheduler
     networks:
       - metricforge_net
