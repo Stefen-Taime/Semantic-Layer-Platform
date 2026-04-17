@@ -42,6 +42,8 @@ That is what Minerva is. And that is what I wanted to rebuild with open-source b
 
 ## The stack, or: choosing my weapons
 
+![The core of the MetricForge stack: MinIO, Hive Metastore, Airflow, Spark, Druid, FastAPI — plus Trino, Streamlit and Plotly for serving and storytelling.](img/metricforge_stack_logos.png)
+
 I spent an embarrassing amount of time staring at the blank architecture diagram before I wrote a single line of code. Every choice is a trade-off. Here is what I ended up with, and why.
 
 ### Storage: **MinIO**

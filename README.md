@@ -6,6 +6,8 @@ L'objectif est de centraliser les métriques business dans une couche sémantiqu
 
 ## Architecture
 
+![Stack MetricForge NYC : MinIO, Hive Metastore, Airflow, Spark, Druid, FastAPI (et Trino + Streamlit + Plotly).](img/metricforge_stack_logos.png)
+
 ```text
 NYC Taxi Data
   -> MinIO raw bucket
