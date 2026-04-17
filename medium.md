@@ -1,4 +1,4 @@
-# How I Rebuilt Airbnb's Flagship Data Tool with Open Source — and What It Taught Me About Metrics That Actually Ship
+# How I Rebuilt Airbnb's Minerva with Open Source — and What It Taught Me About Metrics That Actually Ship
 
 *A storytelling walkthrough of MetricForge NYC: a self-hosted semantic layer powered by MinIO, Spark, Hive, Trino, Druid, Airflow, FastAPI, Streamlit — and a lot of humility.*
 
@@ -45,27 +45,35 @@ That is what Minerva is. And that is what I wanted to rebuild with open-source b
 I spent an embarrassing amount of time staring at the blank architecture diagram before I wrote a single line of code. Every choice is a trade-off. Here is what I ended up with, and why.
 
 ### Storage: **MinIO**
+
 An S3-compatible object store I can run locally. Same API as AWS, zero vendor lock-in. Raw files land here. Parquet files land here. Everything downstream just speaks S3A.
 
 ### Compute: **Apache Spark**
+
 Because I needed to write real data engineering pipelines: read raw CSV, partition, clean, build facts and dimensions, materialise pre-aggregates. Spark is the workhorse. It is verbose. It works.
 
 ### Catalog: **Hive Metastore**
+
 Yes, in 2026. Because the Metastore is the lingua franca of open-source data: Spark speaks it, Trino speaks it, Flink speaks it. One catalog, three engines pointing at the same tables in MinIO. The *magic* of the lakehouse idea is exactly that shared catalog.
 
 ### Interactive SQL: **Trino**
+
 For flexibility. When an analyst needs ad-hoc SQL, they hit Trino. Sub-second queries against the certified Hive tables sitting in MinIO.
 
 ### OLAP: **Apache Druid**
+
 For speed. When a dashboard needs the top 10 zones by revenue over three months, and needs it in 200ms, that is not a Trino job. That is a Druid job. Druid ingests pre-aggregated JSON files Spark produces for exactly this purpose.
 
 ### Orchestration: **Apache Airflow**
+
 Because somebody has to wake up at 3 AM, rebuild the certified tables, refresh Druid, re-validate the semantic layer. That somebody is Airflow, not me.
 
 ### API: **FastAPI**
+
 Because the semantic layer needs a contract. `POST /query` accepts a metric name, dimensions, filters, an engine hint — and returns clean JSON. Everything downstream talks to the API, never directly to the engines.
 
 ### UI: **Streamlit + Plotly**
+
 Because I needed a dashboard, and I didn't want to spend three weeks writing React. Dark theme, glass cards, Plotly charts that auto-select themselves based on the query shape. Good enough to demo, fast enough to iterate.
 
 All of it containerised with **Docker Compose** and running on a single **GCP VM** (`e2-standard-8`, 100 GB disk). The entire stack comes up with one command.
@@ -180,7 +188,7 @@ Second run: Druid ingestion worked. The Overlord accepted the specs. Tasks went 
 
 Third run — the live validation — I POSTed to the API:
 
-```
+```yaml
 metric: daily_zone_revenue
 group_by: [pickup_zone]
 engine: druid
