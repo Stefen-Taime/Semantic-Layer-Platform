@@ -32,6 +32,42 @@ Le projet montre :
 - **FastAPI** pour exposer les requêtes de métriques
 - **Streamlit** pour la démo produit
 
+## Aperçu visuel
+
+### Stockage et catalogue
+
+![MinIO warehouse — buckets `metricforge-raw`, `metricforge-curated`, `metricforge-warehouse` partagés par tous les moteurs.](img/minio-warehouse.png)
+
+### Orchestration Airflow
+
+![DAGs Airflow : `ingest_nyc_taxi_data`, `build_certified_tables`, `refresh_metric_catalog`, `refresh_druid_datasources`, `validate_semantic_layer`.](img/airflow-dags.png)
+
+### Serving SQL Trino
+
+![Historique Trino : jointures et agrégats sur la fact table certifiée en quelques centaines de millisecondes.](img/trino-query-history.png)
+
+### Serving OLAP Druid
+
+![Console Druid : datasources `metricforge_taxi_daily_metrics` et `metricforge_taxi_zone_metrics` avec leurs rollups pré-agrégés.](img/druid-console.png)
+
+### API FastAPI (semantic layer)
+
+![Swagger : un seul `POST /query` comme contrat unique vers tous les moteurs.](img/fastapi-swagger.png)
+
+![`GET /metrics` — catalogue gouverné : owner, description, dimensions autorisées, moteur préféré.](img/api-metrics-response.png)
+
+![`POST /query` vers Trino avec `limit` et `order_by` : classement du pourboire moyen par moyen de paiement.](img/api-query-average-tip.png)
+
+![`POST /query` vers Druid : top boroughs par trajets complétés, ~200 ms grâce aux agrégats pré-calculés.](img/api-query-druid-top-boroughs.png)
+
+### Dashboard Streamlit
+
+![Catalogue du semantic layer directement exposé dans le dashboard (dix métriques, sept dimensions).](img/dashboard-catalog.png)
+
+### Infrastructure
+
+![VM GCP `e2-standard-8` pendant l'exécution d'un pipeline complet.](img/gcp-vm-monitoring.png)
+
 ## Modes d'exécution
 
 ### 1. Local lightweight
