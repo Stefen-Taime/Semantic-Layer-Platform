@@ -78,14 +78,46 @@ else:
             options=["none", "day", "week", "month"],
             index=0,
         )
-        start_date = st.date_input("Start Date", value=date(2024, 1, 1))
-        end_date = st.date_input("End Date", value=date(2024, 2, 1))
+        start_date = st.date_input("Start Date", value=date(2026, 1, 1))
+        end_date = st.date_input("End Date", value=date(2026, 3, 1))
+
+        order_by_options = ["metric_date", selected_metric] + list(allowed_dimensions)
+        # Deduplicate while preserving order.
+        seen: set[str] = set()
+        order_by_unique: list[str] = []
+        for option in order_by_options:
+            if option and option not in seen:
+                seen.add(option)
+                order_by_unique.append(option)
+
+        order_by_columns = st.multiselect(
+            "Order By (columns)",
+            options=order_by_unique,
+            default=[],
+            help=(
+                "Optional. If empty, the API defaults to ordering by the GROUP BY columns."
+            ),
+        )
+        order_by_direction = st.selectbox(
+            "Order Direction",
+            options=["asc", "desc"],
+            index=0,
+            help="Direction applied to every selected ORDER BY column.",
+        )
+        row_limit = st.number_input(
+            "Row Limit",
+            min_value=1,
+            max_value=10000,
+            value=100,
+            step=10,
+            help="Maximum number of rows returned by the API (1-10000).",
+        )
         execute_query_flag = st.checkbox("Execute Query", value=False)
         submit = st.form_submit_button("Run Query")
 
     st.subheader("Results")
     if submit:
-        payload = {
+        payload: dict[str, Any] = {
             "metric": selected_metric,
             "group_by": selected_group_by,
             "time_grain": None if selected_time_grain == "none" else selected_time_grain,
@@ -94,7 +126,13 @@ else:
             "filters": {},
             "execute": execute_query_flag,
             "engine": selected_engine,
+            "limit": int(row_limit),
         }
+        if order_by_columns:
+            payload["order_by"] = [
+                {"column": column, "direction": order_by_direction}
+                for column in order_by_columns
+            ]
         try:
             result = fetch_json("POST", f"{api_base_url}/query", payload=payload)
             st.write(f"Engine: `{result.get('engine', selected_engine)}`")

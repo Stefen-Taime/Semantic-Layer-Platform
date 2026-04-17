@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from metrics_engine import (
     ValidationResult,
@@ -25,6 +25,21 @@ SUPPORTED_ENGINES = ("spark", "trino", "druid")
 app = FastAPI(title="MetricForge NYC API", version="0.5.0")
 
 
+class OrderByClause(BaseModel):
+    """Single ORDER BY entry for the semantic query endpoint."""
+
+    column: str = Field(..., description="Column or metric name to sort on")
+    direction: str = Field(default="asc", description="Sort direction: 'asc' or 'desc'")
+
+    @field_validator("direction")
+    @classmethod
+    def _validate_direction(cls, value: str) -> str:
+        normalized = (value or "asc").lower()
+        if normalized not in {"asc", "desc"}:
+            raise ValueError("direction must be 'asc' or 'desc'")
+        return normalized
+
+
 class QueryRequest(BaseModel):
     """Payload accepted by the semantic query endpoint."""
 
@@ -36,6 +51,16 @@ class QueryRequest(BaseModel):
     filters: dict[str, Any] = Field(default_factory=dict)
     execute: bool = True
     engine: str | None = None
+    limit: int | None = Field(
+        default=None,
+        ge=1,
+        le=10000,
+        description="Maximum number of rows to return (1-10000). Defaults to 100 when omitted.",
+    )
+    order_by: list[OrderByClause] | None = Field(
+        default=None,
+        description="Optional list of {column, direction} clauses overriding the default ORDER BY.",
+    )
 
 
 @app.get("/health")
@@ -130,6 +155,12 @@ def query_metric(request: QueryRequest) -> dict[str, Any]:
             end_date=request.end_date,
             filters=request.filters,
             engine=engine,
+            limit=request.limit,
+            order_by=(
+                [clause.model_dump() for clause in request.order_by]
+                if request.order_by
+                else None
+            ),
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -143,7 +174,7 @@ def query_metric(request: QueryRequest) -> dict[str, Any]:
         }
 
     try:
-        data = _execute_sql(engine=engine, sql=sql)
+        data = _execute_sql(engine=engine, sql=sql, limit=request.limit)
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -163,14 +194,15 @@ def get_default_query_engine() -> str:
     return engine
 
 
-def _execute_sql(engine: str, sql: str) -> list[dict[str, Any]]:
+def _execute_sql(engine: str, sql: str, limit: int | None = None) -> list[dict[str, Any]]:
     """Execute SQL with the requested engine."""
+    effective_limit = limit if limit is not None else 100
     executor = _create_executor(engine)
     if engine == "spark":
-        return executor.execute(sql, limit=100)
+        return executor.execute(sql, limit=effective_limit)
     if engine == "druid":
-        return executor.execute_sql(sql, limit=100)
-    return executor.execute_query(sql, limit=100)
+        return executor.execute_sql(sql, limit=effective_limit)
+    return executor.execute_query(sql, limit=effective_limit)
 
 
 def _create_executor(engine: str):

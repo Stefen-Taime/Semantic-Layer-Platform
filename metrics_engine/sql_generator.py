@@ -32,11 +32,15 @@ def generate_metric_sql(
     end_date: str | None = None,
     filters: dict[str, Any] | None = None,
     engine: str = "spark",
+    limit: int | None = None,
+    order_by: list[dict[str, Any]] | None = None,
 ) -> str:
     """Generate SQL for a metric query."""
     metric = _get_metric(config, metric_name)
     if engine not in SUPPORTED_ENGINES:
         raise ValueError(f"Unsupported engine '{engine}'.")
+
+    validated_limit = _validate_limit(limit)
 
     if engine == "druid":
         return _generate_druid_metric_sql(
@@ -47,6 +51,8 @@ def generate_metric_sql(
             start_date=start_date,
             end_date=end_date,
             filters=filters or {},
+            limit=validated_limit,
+            order_by=order_by,
         )
 
     return _generate_relational_metric_sql(
@@ -58,6 +64,8 @@ def generate_metric_sql(
         end_date=end_date,
         filters=filters or {},
         engine=engine,
+        limit=validated_limit,
+        order_by=order_by,
     )
 
 
@@ -99,6 +107,8 @@ def _generate_relational_metric_sql(
     end_date: str | None,
     filters: dict[str, Any],
     engine: str,
+    limit: int | None = None,
+    order_by: list[dict[str, Any]] | None = None,
 ) -> str:
     """Generate SQL for Spark SQL or Trino."""
     if time_grain and time_grain not in SUPPORTED_TIME_GRAINS:
@@ -113,7 +123,7 @@ def _generate_relational_metric_sql(
     join_aliases = _resolve_join_aliases(config, metric, group_by, filters)
     select_items: list[str] = []
     group_by_positions: list[str] = []
-    order_by_positions: list[str] = []
+    default_order_positions: list[str] = []
     select_position = 0
 
     if time_grain:
@@ -121,7 +131,7 @@ def _generate_relational_metric_sql(
         select_items.append(f"{_render_date_trunc(engine, time_grain, time_column)} AS metric_date")
         select_position += 1
         group_by_positions.append(str(select_position))
-        order_by_positions.append(str(select_position))
+        default_order_positions.append(str(select_position))
 
     for dimension_name in group_by:
         dimension = config.dimensions_by_name[dimension_name]
@@ -129,7 +139,7 @@ def _generate_relational_metric_sql(
         select_items.append(f"{dimension_expr} AS {dimension_name}")
         select_position += 1
         group_by_positions.append(str(select_position))
-        order_by_positions.append(str(select_position))
+        default_order_positions.append(str(select_position))
 
     metric_expr = _render_metric_expression(config, metric, inline_filters=False, visited=set())
     select_items.append(f"{metric_expr} AS {metric.name}")
@@ -154,8 +164,20 @@ def _generate_relational_metric_sql(
     if group_by_positions:
         sql_lines.append("GROUP BY " + ", ".join(group_by_positions))
 
-    if order_by_positions:
-        sql_lines.append("ORDER BY " + ", ".join(order_by_positions))
+    order_by_clause = _render_order_by_clause(
+        order_by=order_by,
+        default_positions=default_order_positions,
+        allowed_columns=_collect_allowed_order_columns(
+            metric=metric,
+            group_by=group_by,
+            time_grain=time_grain,
+        ),
+    )
+    if order_by_clause:
+        sql_lines.append(order_by_clause)
+
+    if limit is not None:
+        sql_lines.append(f"LIMIT {limit}")
 
     return "\n".join(sql_lines)
 
@@ -168,6 +190,8 @@ def _generate_druid_metric_sql(
     start_date: str | None,
     end_date: str | None,
     filters: dict[str, Any],
+    limit: int | None = None,
+    order_by: list[dict[str, Any]] | None = None,
 ) -> str:
     """Generate simple Druid SQL against a pre-aggregated datasource."""
     datasource = metric.serving.druid_datasource
@@ -185,14 +209,14 @@ def _generate_druid_metric_sql(
 
     select_items: list[str] = []
     group_by_positions: list[str] = []
-    order_by_positions: list[str] = []
+    default_order_positions: list[str] = []
     select_position = 0
 
     if time_grain:
         select_items.append(f"{_render_druid_time_floor(time_grain)} AS metric_date")
         select_position += 1
         group_by_positions.append(str(select_position))
-        order_by_positions.append(str(select_position))
+        default_order_positions.append(str(select_position))
 
     for dimension_name in group_by:
         dimension = config.dimensions_by_name[dimension_name]
@@ -200,7 +224,7 @@ def _generate_druid_metric_sql(
         select_items.append(f"{dimension_expr} AS {dimension_name}")
         select_position += 1
         group_by_positions.append(str(select_position))
-        order_by_positions.append(str(select_position))
+        default_order_positions.append(str(select_position))
 
     select_items.append(f"{_render_druid_metric_expression(config, metric, visited=set())} AS {metric.name}")
 
@@ -218,8 +242,20 @@ def _generate_druid_metric_sql(
     if group_by_positions:
         sql_lines.append("GROUP BY " + ", ".join(group_by_positions))
 
-    if order_by_positions:
-        sql_lines.append("ORDER BY " + ", ".join(order_by_positions))
+    order_by_clause = _render_order_by_clause(
+        order_by=order_by,
+        default_positions=default_order_positions,
+        allowed_columns=_collect_allowed_order_columns(
+            metric=metric,
+            group_by=group_by,
+            time_grain=time_grain,
+        ),
+    )
+    if order_by_clause:
+        sql_lines.append(order_by_clause)
+
+    if limit is not None:
+        sql_lines.append(f"LIMIT {limit}")
 
     return "\n".join(sql_lines)
 
@@ -565,3 +601,61 @@ def _render_date_trunc(engine: str, time_grain: str, time_column: str) -> str:
 def _render_druid_time_floor(time_grain: str) -> str:
     """Render a Druid TIME_FLOOR expression."""
     return f"TIME_FLOOR(__time, '{DROID_TIME_FLOOR_INTERVALS[time_grain]}')"
+
+
+def _validate_limit(limit: int | None) -> int | None:
+    """Validate the request-level row limit."""
+    if limit is None:
+        return None
+    if not isinstance(limit, int) or isinstance(limit, bool):
+        raise ValueError("limit must be a positive integer.")
+    if limit < 1 or limit > 10000:
+        raise ValueError("limit must be between 1 and 10000.")
+    return limit
+
+
+def _collect_allowed_order_columns(
+    metric: MetricDefinition,
+    group_by: list[str],
+    time_grain: str | None,
+) -> set[str]:
+    """Return the set of columns that may appear in ORDER BY for a given query."""
+    allowed: set[str] = set(group_by)
+    allowed.add(metric.name)
+    if time_grain:
+        allowed.add("metric_date")
+    return allowed
+
+
+def _render_order_by_clause(
+    order_by: list[dict[str, Any]] | None,
+    default_positions: list[str],
+    allowed_columns: set[str],
+) -> str | None:
+    """Render the ORDER BY clause, preferring a caller-specified ordering."""
+    if order_by:
+        rendered: list[str] = []
+        for entry in order_by:
+            column = entry.get("column") if isinstance(entry, dict) else None
+            direction = entry.get("direction", "asc") if isinstance(entry, dict) else "asc"
+            if not column:
+                raise ValueError("order_by entries must include a 'column'.")
+            if column not in allowed_columns:
+                raise ValueError(
+                    f"Column '{column}' is not available for ORDER BY. "
+                    f"Allowed: {sorted(allowed_columns)}."
+                )
+            if not IDENTIFIER_PATTERN.match(column):
+                raise ValueError(f"Unsafe ORDER BY column '{column}'.")
+            normalized_direction = str(direction or "asc").lower()
+            if normalized_direction not in {"asc", "desc"}:
+                raise ValueError(
+                    f"Unsupported ORDER BY direction '{direction}'. Use 'asc' or 'desc'."
+                )
+            rendered.append(f"{column} {normalized_direction.upper()}")
+        return "ORDER BY " + ", ".join(rendered)
+
+    if default_positions:
+        return "ORDER BY " + ", ".join(default_positions)
+
+    return None
