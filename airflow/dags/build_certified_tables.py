@@ -33,8 +33,9 @@ if DAG and PythonOperator:
         dag_id="build_certified_tables",
         description="Build certified tables for MetricForge NYC",
         start_date=datetime(2024, 1, 1),
-        schedule="@daily",
+        schedule=None,
         catchup=False,
+        max_active_runs=1,
         tags=["metricforge", "spark", "certified"],
     ) as dag:
         build_task = PythonOperator(
