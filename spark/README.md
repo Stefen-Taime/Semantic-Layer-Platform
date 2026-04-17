@@ -1,36 +1,36 @@
 # Spark Jobs
 
-Ce dossier contient la chaîne batch locale du projet.
+This folder contains the project's local batch chain.
 
-## Rôle de Spark
+## Role of Spark
 
-Spark sert ici à :
+Spark is used here to:
 
-- lire des fichiers sources déjà déposés dans MinIO raw par Airflow ou par un script local,
-- lire les objets TLC bruts stockés dans MinIO en Parquet et CSV,
-- écrire des tables Parquet cataloguées localement,
-- écrire les données physiques des tables dans MinIO,
-- construire les tables certifiées qui serviront ensuite à la semantic layer,
-- exécuter quelques requêtes de validation.
+- read source files already uploaded to MinIO raw by Airflow or a local script,
+- read raw TLC objects stored in MinIO as Parquet and CSV,
+- write Parquet tables cataloged locally,
+- write the physical table data to MinIO,
+- build the certified tables that feed the semantic layer,
+- run a few validation queries.
 
-## Rôle du Hive support / warehouse local
+## Hive support / local warehouse
 
-Le projet utilise `enableHiveSupport()` pour que Spark SQL puisse :
+The project uses `enableHiveSupport()` so that Spark SQL can:
 
-- créer la database `metricforge`,
-- enregistrer les tables dans un catalogue local embarqué,
-- stocker les tables gérées dans un warehouse S3A pointant vers MinIO.
+- create the `metricforge` database,
+- register tables in an embedded local catalog,
+- store managed tables in an S3A warehouse pointing to MinIO.
 
-Le metastore reste embarqué localement pour la démo, mais les données des tables sont stockées dans MinIO.
+The metastore stays embedded locally for the demo, but the table data is stored in MinIO.
 
-## Objets attendus dans MinIO
+## Expected objects in MinIO
 
-- `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/yellow_tripdata_<YYYY-MM>.parquet` pour chaque mois listé dans `TLC_TRIPDATA_MONTHS`
+- `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/yellow_tripdata_<YYYY-MM>.parquet` for each month listed in `TLC_TRIPDATA_MONTHS`
 - `s3a://<MINIO_RAW_BUCKET>/nyc_taxi/taxi_zone_lookup.csv`
 
-Si ces objets sont absents, le script `02_ingest_raw_taxi_data.py` arrête l'exécution avec un message clair.
+If these objects are missing, `02_ingest_raw_taxi_data.py` stops execution with a clear message.
 
-## Commandes d'exécution
+## Execution commands
 
 ```bash
 python scripts/load_nyc_taxi_to_minio.py
@@ -40,7 +40,7 @@ python spark/03_build_certified_tables.py
 python spark/04_run_sample_queries.py
 ```
 
-## Tables créées
+## Tables created
 
 - `metricforge.raw_yellow_taxi_trips`
 - `metricforge.raw_taxi_zone_lookup`
@@ -49,28 +49,28 @@ python spark/04_run_sample_queries.py
 - `metricforge.dim_payment_type`
 - `metricforge.dim_date`
 
-## Variables d'environnement supportées
+## Supported environment variables
 
-- `SPARK_MASTER` : défaut `local[2]`
-- `SPARK_DRIVER_MEMORY` : défaut `3g`
-- `SPARK_SQL_SHUFFLE_PARTITIONS` : défaut `4`
-- `SPARK_WAREHOUSE_DIR` : défaut `s3a://metricforge-warehouse/`
-- `MINIO_ENDPOINT` : défaut `http://127.0.0.1:9000`
-- `MINIO_ACCESS_KEY` : défaut `metricforge`
-- `MINIO_SECRET_KEY` : défaut `metricforge123`
-- `MINIO_RAW_BUCKET` : défaut `metricforge-raw`
-- `MINIO_CURATED_BUCKET` : défaut `metricforge-curated`
-- `MINIO_WAREHOUSE_BUCKET` : défaut `metricforge-warehouse`
-- `MINIO_LOGS_BUCKET` : défaut `metricforge-logs`
-- `MINIO_RAW_PREFIX` : défaut `nyc_taxi`
-- `MINIO_SECURE` : défaut `false`
-- `MINIO_REGION` : défaut `us-east-1`
-- `TLC_TRIPDATA_MONTHS` : défaut `2026-01,2026-02`
-- `SPARK_JARS_PACKAGES` : packages Hadoop AWS/AWS SDK compatibles avec votre build Spark
-- `SPARK_EXTRA_JARS_DIR` : dossier optionnel contenant des jars locaux ajoutés au classpath Spark
+- `SPARK_MASTER`: default `local[2]`
+- `SPARK_DRIVER_MEMORY`: default `3g`
+- `SPARK_SQL_SHUFFLE_PARTITIONS`: default `4`
+- `SPARK_WAREHOUSE_DIR`: default `s3a://metricforge-warehouse/`
+- `MINIO_ENDPOINT`: default `http://127.0.0.1:9000`
+- `MINIO_ACCESS_KEY`: default `metricforge`
+- `MINIO_SECRET_KEY`: default `metricforge123`
+- `MINIO_RAW_BUCKET`: default `metricforge-raw`
+- `MINIO_CURATED_BUCKET`: default `metricforge-curated`
+- `MINIO_WAREHOUSE_BUCKET`: default `metricforge-warehouse`
+- `MINIO_LOGS_BUCKET`: default `metricforge-logs`
+- `MINIO_RAW_PREFIX`: default `nyc_taxi`
+- `MINIO_SECURE`: default `false`
+- `MINIO_REGION`: default `us-east-1`
+- `TLC_TRIPDATA_MONTHS`: default `2026-01,2026-02`
+- `SPARK_JARS_PACKAGES`: Hadoop AWS / AWS SDK packages compatible with your Spark build
+- `SPARK_EXTRA_JARS_DIR`: optional folder of local jars added to the Spark classpath
 
-## Note importante
+## Important note
 
-Pour que Spark lise `s3a://...`, il faut fournir les jars S3A compatibles avec votre version Spark/Hadoop, généralement via `SPARK_JARS_PACKAGES`.
-Pour `pyspark 4.1.x`, le runtime embarqué utilise Hadoop `3.4.2`; un choix cohérent est donc `org.apache.hadoop:hadoop-aws:3.4.2`.
-Dans l'image Airflow du projet, ces jars S3A sont préchargés localement dans `/opt/spark-extra-jars` pour éviter les téléchargements Maven à chaud pendant les DAG runs.
+For Spark to read `s3a://...`, you need S3A jars compatible with your Spark/Hadoop version, usually pulled in through `SPARK_JARS_PACKAGES`.
+For `pyspark 4.1.x`, the bundled runtime uses Hadoop `3.4.2`; a consistent choice is `org.apache.hadoop:hadoop-aws:3.4.2`.
+In the project's Airflow image, these S3A jars are preloaded locally into `/opt/spark-extra-jars` to avoid hot Maven downloads during DAG runs.

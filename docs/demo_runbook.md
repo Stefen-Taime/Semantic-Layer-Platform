@@ -1,17 +1,17 @@
 # Demo Runbook
 
-Ce runbook décrit le chemin de démo portfolio recommandé pour `MetricForge NYC`.
+This runbook describes the recommended portfolio demo path for `MetricForge NYC`.
 
-## Prérequis
+## Prerequisites
 
 - Docker Engine + Docker Compose plugin
-- Python 3.11 ou 3.12
-- au moins 16 Go RAM pour une démo correcte
-- 32 Go RAM recommandés pour la stack complète avec Druid + Airflow
+- Python 3.11 or 3.12
+- at least 16 GB RAM for a decent demo
+- 32 GB RAM recommended for the full stack with Druid + Airflow
 
-## Mode local léger
+## Lightweight local mode
 
-Le mode léger sert surtout à développer ou valider le moteur sémantique :
+The lightweight mode is mostly for developing or validating the semantic engine:
 
 ```bash
 python3 -m venv .venv
@@ -22,33 +22,33 @@ uvicorn api.main:app --reload
 streamlit run dashboard/app.py
 ```
 
-## Démo portfolio recommandée
+## Recommended portfolio demo
 
-### 1. Lancer MinIO, Hive Metastore, Trino, Druid, API, Dashboard et Airflow
+### 1. Start MinIO, Hive Metastore, Trino, Druid, API, Dashboard, and Airflow
 
 ```bash
 bash scripts/run_demo_stack.sh
 ```
 
-### 2. Vérifier les services
+### 2. Check the services
 
 ```bash
 bash scripts/check_services.sh
 ```
 
-### 3. Charger les données sources dans MinIO
+### 3. Load source data into MinIO
 
-En mode manuel :
+Manual mode:
 
 ```bash
 python scripts/load_nyc_taxi_to_minio.py
 ```
 
-En mode orchestré, Airflow exécute cette étape via le DAG `ingest_nyc_taxi_data` ou dans le DAG `metricforge_full_pipeline`.
+In orchestrated mode, Airflow runs this step via the `ingest_nyc_taxi_data` DAG or through the `metricforge_full_pipeline` DAG.
 
-### 4. Construire les tables certifiées
+### 4. Build the certified tables
 
-Si tu exécutes Spark hors Airflow :
+If you are running Spark outside Airflow:
 
 ```bash
 python spark/01_create_hive_database.py
@@ -57,7 +57,7 @@ python spark/03_build_certified_tables.py
 python spark/04_run_sample_queries.py
 ```
 
-### 5. Requête métrique via Trino
+### 5. Metric query via Trino
 
 ```bash
 curl -X POST http://localhost:8000/query \
@@ -65,13 +65,13 @@ curl -X POST http://localhost:8000/query \
   -d '{"metric":"gross_revenue","group_by":["pickup_zone"],"time_grain":"day","start_date":"2024-01-01","end_date":"2024-01-31","engine":"trino","execute":false}'
 ```
 
-### 6. Alimenter Druid
+### 6. Seed Druid
 
 ```bash
 bash scripts/seed_druid_sample_data.sh
 ```
 
-### 7. Requête métrique via Druid
+### 7. Metric query via Druid
 
 ```bash
 curl -X POST http://localhost:8000/query \
@@ -79,17 +79,17 @@ curl -X POST http://localhost:8000/query \
   -d '{"metric":"daily_zone_revenue","group_by":["pickup_zone"],"time_grain":"day","start_date":"2024-01-01","end_date":"2024-01-31","engine":"druid","execute":false}'
 ```
 
-### 8. Lancer et montrer Airflow
+### 8. Launch and showcase Airflow
 
-- URL : `http://localhost:8081`
-- user : `admin`
-- password : `admin`
+- URL: `http://localhost:8081`
+- user: `admin`
+- password: `admin`
 
-Montre le DAG `metricforge_full_pipeline`.
+Show the `metricforge_full_pipeline` DAG.
 
-### 9. Montrer le dashboard
+### 9. Showcase the dashboard
 
-- URL : `http://localhost:8501`
-- sélectionner une métrique Trino
-- sélectionner une métrique Druid
-- comparer les deux chemins de serving
+- URL: `http://localhost:8501`
+- pick a Trino metric
+- pick a Druid metric
+- compare the two serving paths

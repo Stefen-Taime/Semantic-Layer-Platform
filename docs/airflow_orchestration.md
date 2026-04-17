@@ -1,19 +1,19 @@
 # Airflow Orchestration
 
-Airflow orchestre le pipeline, mais ne calcule pas lui-même les métriques métier.
+Airflow orchestrates the pipeline. It does not compute business metrics itself.
 
-## Ce qu'Airflow fait ici
+## What Airflow does here
 
-- vérifie MinIO, Hive Metastore, Trino et l'API
-- télécharge les fichiers TLC sources et les pousse dans MinIO raw
-- déclenche l'ingestion Spark
-- déclenche la construction des tables certifiées
-- valide la semantic layer
-- exporte le metric catalog
-- soumet les specs Druid
-- exécute une requête exemple
+- checks MinIO, Hive Metastore, Trino, and the API
+- downloads the TLC source files and pushes them to MinIO raw
+- triggers the Spark ingestion
+- triggers the build of certified tables
+- validates the semantic layer
+- exports the metric catalog
+- submits the Druid specs
+- runs a sample query
 
-## DAGs disponibles
+## Available DAGs
 
 - `ingest_nyc_taxi_data`
 - `build_certified_tables`
@@ -22,11 +22,11 @@ Airflow orchestre le pipeline, mais ne calcule pas lui-même les métriques mét
 - `refresh_druid_datasources`
 - `metricforge_full_pipeline`
 
-## Pourquoi c'est proche de Minerva
+## Why it stays close to Minerva
 
-L'esprit Minerva n'est pas seulement un générateur SQL. C'est aussi :
+The Minerva spirit is not just a SQL generator. It is also:
 
-- une définition centralisée des métriques
-- une orchestration batch claire
-- des moteurs de serving multiples
-- une API qui expose les résultats à des consommateurs produit
+- a centralized definition of metrics,
+- a clear batch orchestration,
+- multiple serving engines,
+- an API exposing the results to product consumers.

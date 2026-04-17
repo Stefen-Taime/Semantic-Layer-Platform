@@ -1,23 +1,23 @@
 # GCP VM Setup
 
-## Recommandation machine
+## Machine recommendation
 
-- minimum : `e2-standard-4` avec 16 Go RAM
-- recommandé pour la démo complète : `e2-standard-8` avec 32 Go RAM
+- minimum: `e2-standard-4` with 16 GB RAM
+- recommended for the full demo: `e2-standard-8` with 32 GB RAM
 
-## Pourquoi cette taille
+## Why this size
 
-- MinIO + Hive Metastore + PostgreSQL + Trino + API + dashboard tiennent raisonnablement sur 16 Go
-- ajouter Druid + Airflow rend la marge mémoire beaucoup plus serrée
+- MinIO + Hive Metastore + PostgreSQL + Trino + API + dashboard fit reasonably on 16 GB
+- adding Druid + Airflow makes the memory margin much tighter
 
-## Installation de base
+## Base install
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y git curl ca-certificates
 ```
 
-Installer Docker :
+Install Docker:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -25,36 +25,36 @@ sudo usermod -aG docker "$USER"
 newgrp docker
 ```
 
-Vérifier le plugin Compose :
+Check the Compose plugin:
 
 ```bash
 docker compose version
 ```
 
-## Cloner le repo
+## Clone the repo
 
 ```bash
 git clone <repo-url>
 cd Semantic-Layer-Platform
 ```
 
-## Lancer la démo complète
+## Launch the full demo
 
 ```bash
 bash scripts/run_demo_stack.sh
 bash scripts/check_services.sh
 ```
 
-## Coût et arrêt
+## Cost and shutdown
 
-- stoppe la stack quand tu ne l'utilises plus :
+- stop the stack when you're done with it:
 
 ```bash
 bash scripts/stop_demo_stack.sh
 ```
 
-- arrête ou supprime la VM après la démonstration pour éviter des coûts inutiles
+- stop or delete the VM after the demo to avoid unnecessary costs
 
-## Avertissement honnête
+## Honest warning
 
-La stack complète est une démo portfolio, pas une plateforme de production durcie. Les credentials sont dev-only et certaines intégrations Hive/Druid peuvent demander de petits ajustements de version selon la VM.
+The full stack is a portfolio demo, not a hardened production platform. The credentials are dev-only and some Hive/Druid integrations may need small version tweaks depending on the VM.

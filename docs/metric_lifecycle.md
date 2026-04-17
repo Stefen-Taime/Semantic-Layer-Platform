@@ -1,39 +1,39 @@
 # Metric Lifecycle
 
-MetricForge NYC suit un cycle simple pour faire passer une demande métier jusqu'à une exposition API ou dashboard.
+MetricForge NYC follows a simple cycle to move a business request all the way to an API or dashboard exposure.
 
-## Étapes
+## Steps
 
 1. **Business need**
-   Une équipe formule un besoin clair, par exemple "suivre le revenu brut journalier par zone".
+   A team formulates a clear need, for example "track daily gross revenue by zone".
 2. **Metric definition**
-   La métrique est définie fonctionnellement : formule, grain attendu, dimensions autorisées, exclusions éventuelles.
+   The metric is defined functionally: formula, expected grain, allowed dimensions, optional exclusions.
 3. **YAML config**
-   La définition est traduite dans les fichiers `entities.yml`, `dimensions.yml`, `joins.yml` et `metrics.yml`.
+   The definition is translated into `entities.yml`, `dimensions.yml`, `joins.yml`, and `metrics.yml`.
 4. **Validation**
-   Le moteur vérifie la cohérence du modèle : références d'entités, dimensions autorisées, métriques dérivées, joins connus.
+   The engine checks the model for consistency: entity references, allowed dimensions, derived metrics, known joins.
 5. **Query generation**
-   Une requête SQL est générée pour Spark, Trino ou Druid selon le mode d'exécution ciblé.
+   A SQL query is generated for Spark, Trino, or Druid depending on the target execution mode.
 6. **Execution**
-   Le moteur exécute la requête ou retourne une réponse mockée tant que l'intégration réelle n'est pas branchée.
+   The engine executes the query or returns a mocked answer until the real integration is wired up.
 7. **API**
-   La métrique est accessible via un endpoint de catalogue ou de requête.
+   The metric is accessible through a catalog or query endpoint.
 8. **Dashboard**
-   Le dashboard consomme la définition validée et affiche le résultat de façon cohérente.
+   The dashboard consumes the validated definition and renders the result consistently.
 
-## Résultat attendu
+## Expected outcome
 
-Ce cycle réduit le risque que :
+This cycle reduces the risk of:
 
-- deux équipes utilisent des définitions différentes,
-- les dashboards embarquent des calculs cachés,
-- les changements de logique soient faits sans validation formelle.
+- two teams using different definitions,
+- dashboards carrying hidden computations,
+- logic changes shipping without formal validation.
 
-## Gouvernance future
+## Future governance
 
-Dans les prochains prompts, ce cycle pourra être renforcé par :
+In upcoming iterations, this cycle can be hardened with:
 
-- tests automatisés sur la semantic layer,
-- versionnement des métriques,
-- vérifications de compatibilité arrière,
-- génération d'un catalogue lisible par les consommateurs.
+- automated tests on the semantic layer,
+- metric versioning,
+- backward-compatibility checks,
+- generation of a consumer-friendly catalog.

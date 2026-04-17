@@ -1,26 +1,26 @@
 # Docker Stack
 
-La couche Docker Compose sert à rapprocher `MetricForge NYC` d'une architecture Minerva-like exécutable en démo.
+The Docker Compose layer brings `MetricForge NYC` closer to a runnable Minerva-like architecture.
 
-## Briques
+## Building blocks
 
-- **MinIO** : stockage objet local compatible S3
-- **Hive Metastore + PostgreSQL** : catalogue partagé
-- **Trino** : serving SQL flexible
-- **Druid** : serving OLAP rapide avec routeur, broker, historical, middle manager, coordinator, ZooKeeper et PostgreSQL metadata store
-- **FastAPI** : API métriques
-- **Streamlit** : dashboard
-- **Airflow** : orchestration complète
+- **MinIO**: local S3-compatible object storage
+- **Hive Metastore + PostgreSQL**: shared catalog
+- **Trino**: flexible SQL serving
+- **Druid**: fast OLAP serving with router, broker, historical, middle manager, coordinator, ZooKeeper, and PostgreSQL metadata store
+- **FastAPI**: metrics API
+- **Streamlit**: dashboard
+- **Airflow**: full orchestration
 
-## Pourquoi la stack reste modulaire
+## Why the stack stays modular
 
-Le mode portfolio recommandé est la stack complète, mais les fichiers Compose restent séparés pour :
+The recommended portfolio mode is the full stack, but the Compose files stay split to:
 
-- déboguer une brique isolée
-- économiser de la mémoire en local
-- rendre la progression plus lisible
+- debug a single brick in isolation,
+- save memory locally,
+- keep the progression readable.
 
-Fichiers disponibles :
+Available files:
 
 - `compose.base.yml`
 - `compose.minio.yml`
@@ -31,18 +31,18 @@ Fichiers disponibles :
 - `compose.airflow.yml`
 - `compose.demo.yml`
 
-## Credentials dev-only
+## Dev-only credentials
 
-MinIO local :
+Local MinIO:
 
-- user : `metricforge`
-- password : `metricforge123`
+- user: `metricforge`
+- password: `metricforge123`
 
-Ne pas utiliser ces valeurs en production.
+Do not use these values in production.
 
-## Commandes principales
+## Main commands
 
-MinIO seul :
+MinIO only:
 
 ```bash
 docker compose \
@@ -51,7 +51,7 @@ docker compose \
   up -d
 ```
 
-MinIO + Hive + Trino :
+MinIO + Hive + Trino:
 
 ```bash
 docker compose \
@@ -62,7 +62,7 @@ docker compose \
   up -d
 ```
 
-Druid :
+Druid:
 
 ```bash
 docker compose \
@@ -74,9 +74,9 @@ docker compose \
   up -d
 ```
 
-Cette brique Druid démarre plusieurs services internes. Le routeur et la console restent exposés sur `http://localhost:8888`.
+This Druid brick starts several internal services. The router and console stay exposed on `http://localhost:8888`.
 
-Airflow :
+Airflow:
 
 ```bash
 docker compose \
@@ -90,31 +90,31 @@ docker compose \
   up -d
 ```
 
-Démo complète :
+Full demo:
 
 ```bash
 docker compose -f docker/compose.demo.yml up -d
 ```
 
-## URLs utiles
+## Useful URLs
 
-- MinIO console : `http://localhost:9001`
-- Hive Metastore : `thrift://localhost:9083`
-- Trino : `http://localhost:8080`
-- Druid : `http://localhost:8888`
-- Airflow : `http://localhost:8081`
-- FastAPI : `http://localhost:8000/docs`
-- Streamlit : `http://localhost:8501`
+- MinIO console: `http://localhost:9001`
+- Hive Metastore: `thrift://localhost:9083`
+- Trino: `http://localhost:8080`
+- Druid: `http://localhost:8888`
+- Airflow: `http://localhost:8081`
+- FastAPI: `http://localhost:8000/docs`
+- Streamlit: `http://localhost:8501`
 
-## Limites honnêtes
+## Honest limits
 
-- Hive Metastore + S3A + MinIO peut demander des jars compatibles selon l'environnement
-- Druid reste la brique la plus lourde de la stack et demande plus de temps de warm-up que Trino ou l'API
-- la démo complète n'est pas recommandée sur Mac 8 Go
-- une VM GCP 32 Go est le meilleur compromis pour démontrer toute la stack
+- Hive Metastore + S3A + MinIO may require compatible jars depending on the environment
+- Druid is the heaviest brick of the stack and needs more warm-up than Trino or the API
+- the full demo is not recommended on an 8 GB Mac
+- a 32 GB GCP VM is the best compromise to showcase the whole stack
 
-## Références utiles
+## Useful references
 
-- Trino Hive connector : https://trino.io/docs/current/connector/hive.html
-- Trino S3 object storage : https://trino.io/docs/current/object-storage/file-system-s3.html
-- Apache Hive metastore installation concepts : https://hive.apache.org/docs/latest/admin/adminmanual-installation/
+- Trino Hive connector: https://trino.io/docs/current/connector/hive.html
+- Trino S3 object storage: https://trino.io/docs/current/object-storage/file-system-s3.html
+- Apache Hive metastore installation concepts: https://hive.apache.org/docs/latest/admin/adminmanual-installation/

@@ -1,18 +1,18 @@
 # Metrics Engine
 
-Le moteur de métriques est le coeur logique de MetricForge NYC.
+The metrics engine is the logical core of MetricForge NYC.
 
-Il est responsable de :
+It is responsible for:
 
-- charger les fichiers YAML de semantic layer,
-- valider les références et la cohérence du modèle,
-- générer un SQL Spark SQL à partir d'une métrique et de dimensions,
-- exécuter les requêtes via Spark local mode quand demandé,
-- rester assez modulaire pour supporter plus tard Trino ou Druid.
+- loading the semantic-layer YAML files,
+- validating references and model consistency,
+- generating Spark SQL from a metric and dimensions,
+- executing queries through Spark local mode when requested,
+- staying modular enough to support Trino or Druid later.
 
-Modules principaux :
+Main modules:
 
-- `parser.py` : charge et typpe les YAML
-- `validator.py` : vérifie la cohérence sémantique
-- `sql_generator.py` : génère le SQL Spark SQL
-- `executors/spark_executor.py` : exécute les requêtes via `spark.sql(...)`
+- `parser.py`: loads and types the YAML
+- `validator.py`: checks semantic consistency
+- `sql_generator.py`: generates Spark SQL
+- `executors/spark_executor.py`: runs queries via `spark.sql(...)`

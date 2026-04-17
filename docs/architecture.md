@@ -1,8 +1,8 @@
 # Architecture
 
-MetricForge NYC reprend l'esprit d'une mini metrics platform inspirée de Minerva, avec une séparation nette entre batch compute, métadonnées, serving SQL, serving OLAP et exposition produit.
+MetricForge NYC captures the spirit of a mini metrics platform inspired by Minerva, with a clean separation between batch compute, metadata, SQL serving, OLAP serving, and product exposure.
 
-## Vue d'ensemble
+## Overview
 
 ```text
                      +------------------------+
@@ -50,27 +50,27 @@ MetricForge NYC reprend l'esprit d'une mini metrics platform inspirée de Minerv
        +----------------------+     +----------------+  +----------------+
 ```
 
-## Rôle des composants
+## Component roles
 
-- **MinIO** stocke les fichiers bruts, le warehouse Parquet et les artefacts techniques.
-- **Airflow** orchestre le pipeline complet et rend la démo plus proche d'un fonctionnement Minerva-like.
-- **Spark** prépare les tables certifiées à partir des données TLC brutes.
-- **Hive Metastore** fournit le catalogue partagé à Spark et Trino.
-- **Trino** sert les requêtes analytiques flexibles à partir des tables Hive.
-- **Druid** sert des métriques pré-agrégées très rapides pour les cas dashboard.
-- **Semantic Layer YAML** centralise les définitions métier.
-- **Metrics Engine** valide les YAML, génère le SQL et route la requête vers Spark, Trino ou Druid.
-- **FastAPI** expose le catalogue et les endpoints de requête.
-- **Streamlit** fournit l'UI de démonstration.
+- **MinIO** stores the raw files, the Parquet warehouse, and the technical artefacts.
+- **Airflow** orchestrates the full pipeline and brings the demo closer to a Minerva-like flow.
+- **Spark** builds the certified tables from the raw TLC data.
+- **Hive Metastore** provides the shared catalog for Spark and Trino.
+- **Trino** serves flexible analytical queries on top of the Hive tables.
+- **Druid** serves very fast pre-aggregated metrics for dashboard use cases.
+- **Semantic Layer YAML** centralizes the business definitions.
+- **Metrics Engine** validates the YAML, generates SQL, and routes the query to Spark, Trino, or Druid.
+- **FastAPI** exposes the catalog and the query endpoints.
+- **Streamlit** provides the demo UI.
 
-## Lecture recommandée
+## Recommended reading
 
-- `Trino` pour la flexibilité et l'exploration ad hoc
-- `Druid` pour un serving OLAP plus rapide sur datasets pré-agrégés
-- `Airflow` pour exposer un pipeline de bout en bout lisible en portfolio
+- `Trino` for flexibility and ad-hoc exploration
+- `Druid` for faster OLAP serving on pre-aggregated datasets
+- `Airflow` to expose a readable end-to-end pipeline in portfolio mode
 
-## Réalité d'exécution
+## Runtime reality
 
-- **Mac 8 Go** : mode dev et tests seulement, ou quelques briques isolées
-- **VM GCP 16 Go** : stack de serving raisonnable
-- **VM GCP 32 Go** : démo complète avec Airflow et Druid recommandée
+- **Mac 8 GB**: dev and tests only, or a few isolated bricks
+- **GCP VM 16 GB**: reasonable serving stack
+- **GCP VM 32 GB**: full demo with Airflow and Druid recommended

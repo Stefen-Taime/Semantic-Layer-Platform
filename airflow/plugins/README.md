@@ -1,9 +1,9 @@
 # Airflow Plugins
 
-Ce dossier reste léger dans la version portfolio.
+This folder stays light in the portfolio version.
 
-Il peut accueillir plus tard :
+It can later host:
 
-- un `MetricForgeMetricQueryOperator`
-- un `DruidIngestionOperator`
-- un `HiveMetastoreCheckOperator`
+- a `MetricForgeMetricQueryOperator`
+- a `DruidIngestionOperator`
+- a `HiveMetastoreCheckOperator`

@@ -1,14 +1,14 @@
 # Druid Docker Notes
 
-Cette configuration ajoute Apache Druid comme couche OLAP pour `MetricForge NYC`.
+This configuration adds Apache Druid as an OLAP layer for `MetricForge NYC`.
 
-- objectif : servir des métriques pré-agrégées rapidement
-- mode visé : démo portfolio sur VM GCP 16/32 Go
-- contrainte : Druid reste lourd pour un Mac 8 Go
+- goal: serve pre-aggregated metrics quickly
+- target mode: portfolio demo on a 16/32 GB GCP VM
+- constraint: Druid stays heavy for an 8 GB Mac
 
-## Mode de lancement
+## Launch mode
 
-Le fichier `docker/compose.druid.yml` suit désormais une topologie Docker plus standard, alignée sur le quickstart officiel Apache Druid :
+The `docker/compose.druid.yml` file now follows a more standard Docker topology, aligned with the official Apache Druid quickstart:
 
 - `druid-zookeeper`
 - `druid-postgres`
@@ -16,21 +16,21 @@ Le fichier `docker/compose.druid.yml` suit désormais une topologie Docker plus 
 - `druid-broker`
 - `druid-historical`
 - `druid-middlemanager`
-- `druid` : routeur et console web
+- `druid`: router and web console
 
-Le routeur Druid expose la console sur `http://localhost:8888`.
-La configuration Druid partagée se trouve dans `docker/druid/environment`.
+The Druid router exposes the console on `http://localhost:8888`.
+Shared Druid configuration lives in `docker/druid/environment`.
 
-## Fichiers de référence
+## Reference files
 
-- `environment` : variables de lancement
-- `jvm.config` : sizing JVM prudent
-- `runtime.properties` : propriétés communes illustratives
-- `ingestion/*.json` : templates d'ingestion
-- `queries/*.json` : exemples de requêtes Druid SQL API
+- `environment`: launch variables
+- `jvm.config`: conservative JVM sizing
+- `runtime.properties`: illustrative shared properties
+- `ingestion/*.json`: ingestion templates
+- `queries/*.json`: Druid SQL API query examples
 
-## Limites honnêtes
+## Honest limits
 
-- pour une démo complète avec Airflow + Trino + Druid, une VM **32 Go** est préférable
-- sur Docker Desktop Mac, il faut souvent augmenter la mémoire allouée
-- la configuration reste orientée démo et non cluster Druid haute disponibilité
+- for a full demo with Airflow + Trino + Druid, a **32 GB** VM is preferred
+- on Docker Desktop Mac you usually need to raise the allocated memory
+- the configuration targets the demo, not a high-availability Druid cluster

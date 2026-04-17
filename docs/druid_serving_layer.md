@@ -1,30 +1,30 @@
 # Druid Serving Layer
 
-Apache Druid sert ici de couche OLAP rapide pour quelques métriques pré-agrégées.
+Apache Druid acts here as a fast OLAP layer for a few pre-aggregated metrics.
 
-## Pourquoi Druid
+## Why Druid
 
-- latence plus faible sur datasets déjà agrégés
-- bon support de requêtes dashboard
-- complément crédible à Trino dans une architecture data platform
+- lower latency on already-aggregated datasets
+- good support for dashboard-style queries
+- a credible complement to Trino in a data platform architecture
 
 ## Trino vs Druid
 
-- **Trino** : flexible, riche pour l'ad hoc, meilleur pour parcourir les tables certifiées
-- **Druid** : rapide sur des datasources pré-agrégées, meilleur pour un serving ciblé
+- **Trino**: flexible, strong for ad-hoc, better for scanning the certified tables
+- **Druid**: fast on pre-aggregated datasources, better for targeted serving
 
-## Métriques dirigées vers Druid
+## Metrics routed to Druid
 
 - `daily_zone_revenue`
 - `daily_completed_trips`
 
 ## Ingestion
 
-Les specs dans `druid/ingestion_specs/` supposent qu'un export intermédiaire a produit des fichiers agrégés journaliers ou par zone.
+The specs in `druid/ingestion_specs/` assume that an intermediate export has already produced daily or per-zone aggregated files.
 
-## Topologie Docker
+## Docker topology
 
-La stack Docker Druid du projet utilise désormais une topologie multi-services :
+The project's Druid Docker stack now uses a multi-service topology:
 
 - `druid-zookeeper`
 - `druid-postgres`
@@ -32,12 +32,12 @@ La stack Docker Druid du projet utilise désormais une topologie multi-services 
 - `druid-broker`
 - `druid-historical`
 - `druid-middlemanager`
-- `druid` : routeur et console
+- `druid`: router and console
 
-Cette organisation est plus proche du quickstart Docker officiel Druid qu'un conteneur unique bricolé.
+This layout is closer to the official Druid Docker quickstart than a hand-rolled single container.
 
-## Limites
+## Limits
 
-- il faut préparer les jeux agrégés avant ingestion
-- Druid rend la stack nettement plus lourde en mémoire
-- la topologie reste une démo monomachine, pas un cluster haute disponibilité
+- aggregated datasets must be prepared before ingestion
+- Druid makes the stack noticeably heavier in memory
+- the topology is a single-machine demo, not a high-availability cluster

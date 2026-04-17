@@ -1,40 +1,40 @@
-# Local Vs GCP VM
+# Local vs GCP VM
 
-MetricForge NYC est conçu pour avancer en deux temps : développement léger en local, puis démonstration plus complète sur VM GCP.
+MetricForge NYC is designed to progress in two stages: lightweight local development first, then a fuller demonstration on a GCP VM.
 
-## Local Mac 8 Go
+## Local Mac 8 GB
 
-Usage recommandé :
+Recommended use:
 
-- éditer les fichiers YAML de semantic layer,
-- développer l'API FastAPI,
-- construire le dashboard Streamlit,
-- écrire les tests unitaires,
-- faire des essais sur de petits échantillons de données.
+- edit the semantic-layer YAML files,
+- develop the FastAPI API,
+- build the Streamlit dashboard,
+- write unit tests,
+- experiment on small data samples.
 
-Limites :
+Limits:
 
-- Spark local reste possible mais doit être limité,
-- Hive, Trino et Druid en parallèle peuvent devenir trop lourds,
-- ingestion et traitements complets des datasets TLC sont à éviter.
+- local Spark is possible but should be kept minimal,
+- running Hive, Trino, and Druid at the same time becomes too heavy,
+- full ingestion and processing of the TLC datasets should be avoided.
 
-## GCP VM Ubuntu 16 Go / 32 Go
+## GCP VM Ubuntu 16 GB / 32 GB
 
-Usage recommandé :
+Recommended use:
 
-- lancer Spark avec plus de confort pour l'ingestion batch,
-- exécuter Hive Metastore et Trino pour une démo réaliste,
-- ajouter Druid seulement si nécessaire pour une démonstration OLAP,
-- servir l'API et le dashboard sur la même VM pour une architecture compacte.
+- run Spark more comfortably for batch ingestion,
+- run Hive Metastore and Trino for a realistic demo,
+- add Druid only if needed for an OLAP demonstration,
+- serve the API and dashboard from the same VM for a compact architecture.
 
-Recommandation pratique :
+Practical recommendation:
 
-- **16 Go RAM** : suffisant pour Spark local modéré + Hive Metastore + Trino + API/dashboard.
-- **32 Go RAM** : préférable si Druid est activé ou si les données traitées sont moins échantillonnées.
+- **16 GB RAM**: enough for moderate local Spark + Hive Metastore + Trino + API/dashboard.
+- **32 GB RAM**: preferred when Druid is enabled or when the processed data is less sampled.
 
-## Stratégie de progression
+## Progression strategy
 
-- Commencer par Trino comme moteur principal de serving.
-- Introduire Druid plus tard uniquement si le bénéfice démonstratif est clair.
-- Garder les jeux de données et la volumétrie contrôlés au début.
-- Favoriser des composants simples à opérer sur une seule VM.
+- start with Trino as the main serving engine,
+- introduce Druid later only if the demo benefit is clear,
+- keep datasets and volumes controlled at first,
+- favour components that are simple to operate on a single VM.

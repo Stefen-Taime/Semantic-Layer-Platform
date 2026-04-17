@@ -1,14 +1,14 @@
 # API
 
-Ce dossier contient l'API FastAPI de MetricForge NYC.
+This folder contains the FastAPI service of MetricForge NYC.
 
-Rôle de l'API :
+Role of the API:
 
-- exposer un endpoint de santé,
-- publier le catalogue des métriques et dimensions,
-- valider la semantic layer,
-- accepter une requête de métrique,
-- générer du SQL Spark SQL,
-- exécuter la requête dans Spark si demandé.
+- expose a health endpoint,
+- publish the catalog of metrics and dimensions,
+- validate the semantic layer,
+- accept a metric query,
+- generate Spark SQL,
+- execute the query in Spark if requested.
 
-Le mode `execute=false` retourne seulement le SQL généré, ce qui permet de tester l'API même si Spark ou les données ne sont pas disponibles.
+The `execute=false` mode returns only the generated SQL, which lets you test the API even when Spark or the data are not available.

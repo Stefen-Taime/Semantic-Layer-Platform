@@ -1,81 +1,81 @@
 # MetricForge NYC
 
-MetricForge NYC est un projet open source de portfolio inspiré de **Minerva**, la plateforme de métriques et de semantic layer d'Airbnb.
+MetricForge NYC is an open-source portfolio project inspired by **Minerva**, Airbnb's metrics platform and semantic layer.
 
-L'objectif : centraliser les métriques business dans une couche sémantique déclarative (YAML) pour éviter que chaque équipe recalcule les mêmes KPI différemment avec des SQL, filtres et conventions divergents. Une seule définition, plusieurs moteurs d'exécution, un seul chiffre par question.
+Goal: centralize business metrics in a declarative semantic layer (YAML) so that every team stops recomputing the same KPIs differently with divergent SQL, filters, and conventions. One definition, multiple execution engines, one number per question.
 
 ## Architecture
 
-![Stack MetricForge NYC : MinIO, Hive Metastore, Airflow, Spark, Druid, FastAPI (et Trino + Streamlit + Plotly).](img/metricforge_stack_logos.png)
+![MetricForge NYC stack: MinIO, Hive Metastore, Airflow, Spark, Druid, FastAPI (plus Trino + Streamlit + Plotly).](img/metricforge_stack_logos.png)
 
 ```text
 NYC Taxi Data (TLC)
   -> MinIO raw bucket
   -> Airflow
-  -> Spark (ingestion + certification + agrégats Druid)
+  -> Spark (ingestion + certification + Druid aggregates)
   -> Hive Metastore
   -> MinIO warehouse bucket (Parquet)
-  -> Trino (SQL flexible)  +  Druid (OLAP pré-agrégé)
+  -> Trino (flexible SQL)  +  Druid (pre-aggregated OLAP)
   -> Semantic Layer YAML (metrics_engine)
   -> FastAPI  (/query, /metrics, /dimensions, /validate)
   -> Streamlit + Plotly (dashboard)
 ```
 
-Le projet montre :
+The project showcases:
 
-- **MinIO** pour le stockage objet local compatible S3
-- **Apache Spark** pour l'ingestion, les tables certifiées et les agrégats Druid
-- **Hive Metastore** pour le catalogue technique partagé Spark/Trino
-- **Trino** pour le serving SQL flexible
-- **Apache Druid** pour le serving OLAP pré-agrégé (datasources `metricforge_taxi_daily_metrics` et `metricforge_taxi_zone_metrics`)
-- **Apache Airflow** pour l'orchestration complète du pipeline
-- **Semantic layer YAML** (`metrics_engine`) pour définir dimensions, joins et métriques
-- **FastAPI** pour exposer les requêtes de métriques avec `limit` et `order_by`
-- **Streamlit + Plotly** pour la démo produit (thème dark, charts auto-sélectionnés)
+- **MinIO** for local S3-compatible object storage
+- **Apache Spark** for ingestion, certified tables, and Druid aggregates
+- **Hive Metastore** as the shared technical catalog across Spark and Trino
+- **Trino** for flexible SQL serving
+- **Apache Druid** for pre-aggregated OLAP serving (datasources `metricforge_taxi_daily_metrics` and `metricforge_taxi_zone_metrics`)
+- **Apache Airflow** for full pipeline orchestration
+- **YAML semantic layer** (`metrics_engine`) to define dimensions, joins, and metrics
+- **FastAPI** to expose metric queries with `limit` and `order_by`
+- **Streamlit + Plotly** for the product demo (dark theme, auto-selected charts)
 
-La couche sémantique expose aujourd'hui **10 métriques** (`completed_trips`, `gross_revenue`, `average_fare`, `average_tip`, `total_tip_amount`, `tip_rate`, `average_trip_distance`, `average_trip_duration`, `daily_zone_revenue`, `daily_completed_trips`) sur **8 dimensions** (`pickup_zone`, `pickup_borough`, `dropoff_zone`, `dropoff_borough`, `payment_type`, `pickup_date`, `pickup_month`, `pickup_day`).
+The semantic layer currently exposes **10 metrics** (`completed_trips`, `gross_revenue`, `average_fare`, `average_tip`, `total_tip_amount`, `tip_rate`, `average_trip_distance`, `average_trip_duration`, `daily_zone_revenue`, `daily_completed_trips`) across **8 dimensions** (`pickup_zone`, `pickup_borough`, `dropoff_zone`, `dropoff_borough`, `payment_type`, `pickup_date`, `pickup_month`, `pickup_day`).
 
-## Aperçu visuel
+## Visual overview
 
-### Stockage et catalogue
+### Storage and catalog
 
-![MinIO warehouse — buckets `metricforge-raw`, `metricforge-curated`, `metricforge-warehouse` partagés par tous les moteurs.](img/minio-warehouse.png)
+![MinIO warehouse: `metricforge-raw`, `metricforge-curated`, `metricforge-warehouse` buckets shared by every engine.](img/minio-warehouse.png)
 
-### Orchestration Airflow
+### Airflow orchestration
 
-![DAGs Airflow : `ingest_nyc_taxi_data`, `build_certified_tables`, `refresh_metric_catalog`, `refresh_druid_datasources`, `validate_semantic_layer`, plus le DAG parent `metricforge_full_pipeline`.](img/airflow-dags.png)
+![Airflow DAGs: `ingest_nyc_taxi_data`, `build_certified_tables`, `refresh_metric_catalog`, `refresh_druid_datasources`, `validate_semantic_layer`, plus the parent DAG `metricforge_full_pipeline`.](img/airflow-dags.png)
 
-### Serving SQL Trino
+### Trino SQL serving
 
-![Historique Trino : jointures et agrégats sur la fact table certifiée en quelques centaines de millisecondes.](img/trino-query-history.png)
+![Trino query history: joins and aggregates on the certified fact table answered in a few hundred milliseconds.](img/trino-query-history.png)
 
-### Serving OLAP Druid
+### Druid OLAP serving
 
-![Console Druid : datasources `metricforge_taxi_daily_metrics` et `metricforge_taxi_zone_metrics` avec leurs rollups pré-agrégés.](img/druid-console.png)
+![Druid console: datasources `metricforge_taxi_daily_metrics` and `metricforge_taxi_zone_metrics` with their pre-aggregated rollups.](img/druid-console.png)
 
-### API FastAPI (semantic layer)
+### FastAPI (semantic layer)
 
-![Swagger : un seul `POST /query` comme contrat unique vers tous les moteurs.](img/fastapi-swagger.png)
+![Swagger: a single `POST /query` as the unified contract across engines.](img/fastapi-swagger.png)
 
-![`GET /metrics` — catalogue gouverné : owner, description, dimensions autorisées, moteur préféré.](img/api-metrics-response.png)
+![`GET /metrics`: governed catalog with owner, description, allowed dimensions, preferred engine.](img/api-metrics-response.png)
 
-![`POST /query` vers Trino avec `limit` et `order_by` : classement du pourboire moyen par moyen de paiement.](img/api-query-average-tip.png)
+![`POST /query` against Trino with `limit` and `order_by`: ranking of average tip by payment method.](img/api-query-average-tip.png)
 
-![`POST /query` vers Druid : top boroughs par trajets complétés, ~200 ms grâce aux agrégats pré-calculés.](img/api-query-druid-top-boroughs.png)
+![`POST /query` against Druid: top boroughs by completed trips, around 200 ms thanks to pre-aggregated rollups.](img/api-query-druid-top-boroughs.png)
 
-### Dashboard Streamlit
+### Streamlit dashboard
 
-![Catalogue du semantic layer directement exposé dans le dashboard (dix métriques, huit dimensions).](img/dashboard-catalog.png)
+![Semantic-layer catalog exposed directly in the dashboard (ten metrics, eight dimensions).](img/dashboard-catalog.png)
 
 ### Infrastructure
 
-![VM GCP `e2-standard-8` pendant l'exécution d'un pipeline complet.](img/gcp-vm-monitoring.png)
+![GCP VM `e2-standard-8` during a full pipeline run.](img/gcp-vm-monitoring.png)
 
-## Modes d'exécution
+## Execution modes
 
-### 1. Local lightweight (sans Docker)
+### 1. Local lightweight (no Docker)
 
-Mode dev pour le parser, le validator, les tests, l'API et le dashboard :
+Dev mode for the parser, validator, tests, API, and dashboard:
 
 ```bash
 python3 -m venv .venv
@@ -98,47 +98,47 @@ docker compose \
   up -d
 ```
 
-### 3. Full demo stack (recommandé)
+### 3. Full demo stack (recommended)
 
-Mode démo portfolio, tous les services en une commande (MinIO + Hive + Trino + Druid + Airflow + FastAPI + Streamlit) :
+Portfolio demo mode, every service with one command (MinIO + Hive + Trino + Druid + Airflow + FastAPI + Streamlit):
 
 ```bash
 bash scripts/run_demo_stack.sh
-# ou
+# or
 docker compose -f docker/compose.demo.yml up -d --build
 ```
 
-Arrêt propre :
+Clean shutdown:
 
 ```bash
 bash scripts/stop_demo_stack.sh
 ```
 
-### 4. Stacks ciblées
+### 4. Targeted stacks
 
-Airflow seul avec ses dépendances :
+Airflow only with its dependencies:
 
 ```bash
 bash scripts/run_airflow_stack.sh
 ```
 
-Druid seul avec ses dépendances :
+Druid only with its dependencies:
 
 ```bash
 bash scripts/run_druid_stack.sh
 ```
 
-## Pipelines Spark
+## Spark pipelines
 
-Les jobs Spark se trouvent dans `spark/` :
+Spark jobs live in `spark/`:
 
-- `01_create_hive_database.py` — crée la base `metricforge` dans le Hive Metastore
-- `02_ingest_raw_taxi_data.py` — charge les CSV NYC TLC depuis MinIO en tables raw
-- `03_build_certified_tables.py` — construit les tables certifiées partitionnées (`fct_taxi_trips`, `dim_zone`, `dim_payment_type`, `dim_date`)
-- `04_build_druid_aggregates.py` — calcule les rollups journaliers/par zone et publie les JSON ingérés par Druid
-- `04_run_sample_queries.py` — requêtes d'exemple de validation
+- `01_create_hive_database.py`: creates the `metricforge` database in the Hive Metastore
+- `02_ingest_raw_taxi_data.py`: loads NYC TLC CSVs from MinIO into raw tables
+- `03_build_certified_tables.py`: builds the partitioned certified tables (`fct_taxi_trips`, `dim_zone`, `dim_payment_type`, `dim_date`)
+- `04_build_druid_aggregates.py`: computes daily and per-zone rollups and publishes the JSON ingested by Druid
+- `04_run_sample_queries.py`: validation sample queries
 
-Exécution locale (après avoir poussé les données) :
+Local execution (after loading data):
 
 ```bash
 python scripts/load_nyc_taxi_to_minio.py
@@ -148,23 +148,23 @@ python spark/03_build_certified_tables.py
 python spark/04_build_druid_aggregates.py
 ```
 
-Dans la stack complète, Airflow orchestre ces étapes, y compris le téléchargement `TLC -> MinIO raw`. La liste des mois à ingérer est dynamique via la variable `TLC_TRIPDATA_MONTHS` (défaut : `2026-01,2026-02`). `taxi_zone_lookup.csv` est toujours chargé.
+In the full stack, Airflow orchestrates these steps, including the `TLC -> MinIO raw` download. The months to ingest are configurable via `TLC_TRIPDATA_MONTHS` (default: `2026-01,2026-02`). `taxi_zone_lookup.csv` is always loaded.
 
-## DAGs Airflow
+## Airflow DAGs
 
-Dans `airflow/dags/` :
+In `airflow/dags/`:
 
-- `ingest_nyc_taxi_data.py` — TLC → MinIO raw
-- `build_certified_tables.py` — Spark : raw → curated → certified
-- `build_druid_aggregates.py` — Spark : certified → agrégats JSON Druid
-- `refresh_druid_datasources.py` — soumet les specs à l'Overlord Druid
-- `refresh_metric_catalog.py` — régénère le catalogue des métriques exposé par l'API
-- `validate_semantic_layer.py` — lint/validation du semantic layer
-- `metricforge_full_pipeline.py` — DAG parent qui déclenche toute la chaîne
+- `ingest_nyc_taxi_data.py`: TLC -> MinIO raw
+- `build_certified_tables.py`: Spark, raw -> curated -> certified
+- `build_druid_aggregates.py`: Spark, certified -> Druid JSON rollups
+- `refresh_druid_datasources.py`: submits specs to the Druid Overlord
+- `refresh_metric_catalog.py`: regenerates the metric catalog exposed by the API
+- `validate_semantic_layer.py`: semantic-layer lint and validation
+- `metricforge_full_pipeline.py`: parent DAG that triggers the full chain
 
 ## Tests
 
-Dans `tests/` :
+In `tests/`:
 
 ```bash
 python -m pytest tests/test_semantic_yaml.py
@@ -176,11 +176,11 @@ python -m pytest tests/test_trino_executor.py
 python -m pytest tests/test_druid_executor.py
 python -m pytest tests/test_source_loader.py
 python -m pytest tests/test_spark_session.py
-# ou simplement:
+# or simply:
 python -m pytest -q
 ```
 
-## Endpoints API
+## API endpoints
 
 - `GET /health`
 - `GET /engines`
@@ -189,25 +189,25 @@ python -m pytest -q
 - `GET /metrics`
 - `GET /dimensions`
 - `POST /validate`
-- `POST /query` — supporte `metric`, `group_by`, `time_grain`, `start_date`, `end_date`, `filters`, `engine`, `execute`, ainsi que **`limit` (1-10000)** et **`order_by` (liste de `{column, direction}`)**
+- `POST /query`: supports `metric`, `group_by`, `time_grain`, `start_date`, `end_date`, `filters`, `engine`, `execute`, plus **`limit` (1-10000)** and **`order_by` (list of `{column, direction}`)**
 
-Doc interactive : `http://localhost:8000/docs`.
+Interactive docs: `http://localhost:8000/docs`.
 
-## Exemples curl
+## curl examples
 
-Health :
+Health:
 
 ```bash
 curl http://localhost:8000/health
 ```
 
-Catalogue des métriques :
+Metric catalog:
 
 ```bash
 curl http://localhost:8000/metrics
 ```
 
-SQL Trino sans exécution (révision de la requête générée) :
+Trino SQL without execution (review the generated query):
 
 ```bash
 curl -X POST http://localhost:8000/query \
@@ -222,7 +222,7 @@ curl -X POST http://localhost:8000/query \
   }'
 ```
 
-Top 10 zones par chiffre d'affaires (Druid, pré-agrégé, ~200 ms) :
+Top 10 zones by revenue (Druid, pre-aggregated, around 200 ms):
 
 ```bash
 curl -X POST http://localhost:8000/query \
@@ -238,7 +238,7 @@ curl -X POST http://localhost:8000/query \
   }'
 ```
 
-Série temporelle (Trino + `time_grain`) :
+Time series (Trino + `time_grain`):
 
 ```bash
 curl -X POST http://localhost:8000/query \
@@ -252,49 +252,49 @@ curl -X POST http://localhost:8000/query \
   }'
 ```
 
-## Services utiles
+## Useful services
 
-- MinIO console : http://localhost:9001
-- Trino UI : http://localhost:8080
-- Druid router : http://localhost:8888
-- Airflow UI : http://localhost:8081
-- FastAPI docs : http://localhost:8000/docs
-- Streamlit dashboard : http://localhost:8501
+- MinIO console: http://localhost:9001
+- Trino UI: http://localhost:8080
+- Druid router: http://localhost:8888
+- Airflow UI: http://localhost:8081
+- FastAPI docs: http://localhost:8000/docs
+- Streamlit dashboard: http://localhost:8501
 
-## Structure du repo
+## Repository structure
 
 ```
-metrics_engine/      # parser/validator/SQL generator, executors Spark/Trino/Druid
+metrics_engine/      # parser/validator/SQL generator, Spark/Trino/Druid executors
 semantic_layer/      # metrics.yml, dimensions.yml, joins.yml, entities.yml
 api/                 # FastAPI (main.py)
 dashboard/           # Streamlit + Plotly (app.py)
-spark/               # jobs Spark (ingestion, certification, agrégats Druid)
+spark/               # Spark jobs (ingestion, certification, Druid aggregates)
 airflow/             # dags/ + include/
-docker/              # compose.*.yml + images custom (airflow, apps, druid, hive, trino)
+docker/              # compose.*.yml + custom images (airflow, apps, druid, hive, trino)
 scripts/             # run_demo_stack.sh, stop_demo_stack.sh, run_airflow_stack.sh, run_druid_stack.sh, ...
 tests/               # pytest (semantic_yaml, sql_generator, sql_generator_druid, routing, executors, ...)
-docs/                # documentation détaillée
+docs/                # detailed documentation
 infra/               # Terraform GCP VM
 data/                # raw/, curated/ (git-ignored)
-img/                 # screenshots README + article Medium
+img/                 # README screenshots and Medium article
 ```
 
-## Limitations connues
+## Known limitations
 
-- la stack complète est lourde et vise surtout une **VM GCP 32 Go** (type `e2-standard-8`)
-- Hive Metastore + MinIO + S3A peut demander des ajustements de jars selon l'image et l'environnement (entrypoint fourni)
-- Druid tourne en topologie multi-services de démo (Coordinator, Broker, Historical, MiddleManager, Router), ce qui reste lourd à démarrer
-- les specs Druid supposent un export agrégé préalable par Spark
-- les credentials fournis sont strictement **dev-only**
+- the full stack is heavy and targets a **GCP VM with 32 GB** (type `e2-standard-8`)
+- Hive Metastore + MinIO + S3A may require jar tweaks depending on the image and environment (an entrypoint is provided)
+- Druid runs in a demo multi-service topology (Coordinator, Broker, Historical, MiddleManager, Router), which is heavy to boot
+- the Druid specs assume a pre-aggregated export produced by Spark
+- the provided credentials are strictly **dev-only**
 
-## Prochaines améliorations possibles
+## Possible next improvements
 
-- observabilité bout-en-bout (Prometheus/Grafana sur la stack)
-- tests d'intégration automatisés contre la full stack
-- plus de métriques ratio/cohort et de filtres utilisateur
-- export automatique des agrégats Druid depuis Spark ou Trino sans étape intermédiaire
+- end-to-end observability (Prometheus/Grafana on the stack)
+- automated integration tests against the full stack
+- more ratio and cohort metrics, and more user-facing filters
+- automatic export of Druid aggregates directly from Spark or Trino without an intermediate step
 
-## Documentation complémentaire
+## Further documentation
 
 - [docs/architecture.md](./docs/architecture.md)
 - [docs/business_requirements.md](./docs/business_requirements.md)

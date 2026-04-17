@@ -1,8 +1,8 @@
 # Airflow
 
-Ce dossier contient l'orchestration Airflow de la démo portfolio.
+This folder contains the Airflow orchestration for the portfolio demo.
 
-DAGs principaux :
+Main DAGs:
 
 - `metricforge_full_pipeline.py`
 - `ingest_nyc_taxi_data.py`
@@ -11,4 +11,4 @@ DAGs principaux :
 - `refresh_metric_catalog.py`
 - `refresh_druid_datasources.py`
 
-Pour la démo finale, Airflow fait partie de la stack cible. Airflow orchestre maintenant aussi la première étape `source TLC -> MinIO raw`, puis l'ingestion Spark depuis MinIO vers les tables raw/certifiées.
+For the full demo, Airflow is part of the target stack. Airflow now also orchestrates the first step `TLC source -> MinIO raw`, then the Spark ingestion from MinIO into the raw and certified tables.

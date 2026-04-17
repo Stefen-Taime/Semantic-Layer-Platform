@@ -1,27 +1,27 @@
 # Druid Serving Layer
 
-Cette couche expose le serving OLAP rapide de `MetricForge NYC`.
+This layer exposes the fast OLAP serving of `MetricForge NYC`.
 
-## Rôle dans la démo finale
+## Role in the final demo
 
-- ingestion de datasets agrégés exportés depuis Spark ou Trino
-- serving ultra-rapide pour quelques métriques portefeuille
-- comparaison claire avec Trino :
-  - `Trino` pour l'ad hoc flexible
-  - `Druid` pour le pré-agrégé orienté dashboard
+- ingestion of aggregated datasets exported from Spark or Trino
+- ultra-fast serving for a few portfolio metrics
+- clear comparison with Trino:
+  - `Trino` for flexible ad-hoc
+  - `Druid` for pre-aggregated, dashboard-oriented serving
 
-## Fichiers
+## Files
 
-- `ingestion_specs/` : specs d'ingestion Druid
-- `sample_queries/` : exemples de payloads Druid SQL API
+- `ingestion_specs/`: Druid ingestion specs
+- `sample_queries/`: Druid SQL API payload examples
 
-## Datasources prévues
+## Planned datasources
 
 - `metricforge_taxi_daily_metrics`
 - `metricforge_taxi_zone_metrics`
 
-## Limites honnêtes
+## Honest limits
 
-- les specs sont réalistes mais supposent qu'un export préalable vers JSON/CSV/Parquet a été produit
-- les chemins d'entrée doivent être adaptés à l'environnement exact de la VM ou du conteneur Druid
-- pour la démo complète, une VM 32 Go est nettement préférable
+- the specs are realistic but assume a prior export to JSON/CSV/Parquet has already been produced
+- input paths must be adapted to the exact environment of the VM or Druid container
+- for the full demo, a 32 GB VM is clearly preferred

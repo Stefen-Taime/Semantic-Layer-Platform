@@ -1,12 +1,12 @@
 # Dashboard
 
-Ce dossier contient le dashboard Streamlit de démonstration.
+This folder contains the Streamlit demo dashboard.
 
-Objectif :
+Goals:
 
-- afficher le catalogue de métriques exposé par l'API,
-- proposer un query builder minimal,
-- afficher le SQL généré,
-- afficher les résultats si l'exécution Spark est activée.
+- display the metric catalog exposed by the API,
+- offer a minimal query builder,
+- display the generated SQL,
+- display results if Spark execution is enabled.
 
-Le dashboard reste volontairement simple et dépend de l'API FastAPI locale.
+The dashboard stays intentionally simple and depends on the local FastAPI service.

@@ -1,15 +1,15 @@
 # Semantic Layer
 
-Ce dossier contient la couche sémantique déclarative de MetricForge NYC.
+This folder contains the declarative semantic layer of MetricForge NYC.
 
-- `entities.yml` décrit les entités logiques comme `trip`.
-- `dimensions.yml` décrit les dimensions exposées par l'API.
-- `joins.yml` documente les chemins de jointure entre faits et dimensions.
-- `metrics.yml` décrit les métriques business, leurs filtres et leurs dimensions autorisées.
+- `entities.yml` describes the logical entities such as `trip`.
+- `dimensions.yml` describes the dimensions exposed by the API.
+- `joins.yml` documents the join paths between facts and dimensions.
+- `metrics.yml` describes the business metrics, their filters, and their allowed dimensions.
 
-Ces fichiers sont maintenant utilisés réellement pour :
+These files are now actually used to:
 
-- la validation sémantique,
-- la génération de SQL Spark SQL,
-- l'exposition via FastAPI,
-- la construction des requêtes dans le dashboard Streamlit.
+- perform semantic validation,
+- generate Spark SQL,
+- expose metrics via FastAPI,
+- build queries from the Streamlit dashboard.

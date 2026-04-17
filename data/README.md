@@ -1,15 +1,15 @@
 # Data Directory
 
-Ce dossier n'est plus le backend principal de stockage pour le pipeline batch.
+This folder is no longer the main storage backend for the batch pipeline.
 
-Le projet utilise désormais **MinIO** comme stockage objet compatible S3 pour :
+The project now uses **MinIO** as S3-compatible object storage for:
 
-- les fichiers sources bruts NYC TLC,
-- le warehouse Spark/Hive,
-- les tables gérées par la couche batch.
+- NYC TLC raw source files,
+- the Spark/Hive warehouse,
+- the tables managed by the batch layer.
 
-Ce répertoire peut rester pour :
+This directory can still be used for:
 
-- des placeholders de structure,
-- de petits exports manuels,
-- des fichiers temporaires non critiques si nécessaire.
+- structure placeholders,
+- small manual exports,
+- non-critical temporary files if needed.

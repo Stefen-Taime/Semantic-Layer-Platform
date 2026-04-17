@@ -1,16 +1,16 @@
 # GCP Demo VM
 
-Ce dossier crée une VM Compute Engine pour exécuter la démo complète `MetricForge NYC`.
+This folder provisions a Compute Engine VM to run the full `MetricForge NYC` demo.
 
-## Ressources créées
+## Resources created
 
-- 1 VM Compute Engine
-  - nom : `metricforge-demo-vm`
-  - machine type : `e2-standard-8`
-  - image : Ubuntu 22.04 LTS
-  - boot disk : `100 GB`
-  - network tags : `metricforge-demo`
-- règles firewall optionnelles
+- 1 Compute Engine VM
+  - name: `metricforge-demo-vm`
+  - machine type: `e2-standard-8`
+  - image: Ubuntu 22.04 LTS
+  - boot disk: `100 GB`
+  - network tags: `metricforge-demo`
+- optional firewall rules
   - `22` SSH
   - `8000` FastAPI
   - `8501` Streamlit
@@ -19,7 +19,7 @@ Ce dossier crée une VM Compute Engine pour exécuter la démo complète `Metric
   - `8888` Druid
   - `9001` MinIO Console
 
-Le startup script installe :
+The startup script installs:
 
 - Docker
 - Docker Compose plugin
@@ -29,21 +29,21 @@ Le startup script installe :
 - unzip
 - make
 
-## Prérequis
+## Prerequisites
 
 - Terraform `>= 1.5`
-- `gcloud` installé
-- un projet GCP existant
+- `gcloud` installed
+- an existing GCP project
 
-Si tu as déjà une auth GCP active dans le terminal, Terraform peut souvent la réutiliser via les credentials applicatifs. Le plus fiable reste :
+If you already have an active GCP auth in your terminal, Terraform can usually reuse it through application-default credentials. The most reliable flow is:
 
 ```bash
 gcloud auth application-default login
 ```
 
-## Utilisation
+## Usage
 
-Depuis la racine du repo :
+From the repo root:
 
 ```bash
 cd infra/gcp
@@ -52,18 +52,18 @@ terraform plan -var="project_id=<GCP_PROJECT_ID>"
 terraform apply -var="project_id=<GCP_PROJECT_ID>"
 ```
 
-## Variables utiles
+## Useful variables
 
-- `project_id` : obligatoire
-- `region` : défaut `northamerica-northeast1`
-- `zone` : défaut `northamerica-northeast1-b`
-- `instance_name` : défaut `metricforge-demo-vm`
-- `machine_type` : défaut `e2-standard-8`
-- `create_firewall_rules` : défaut `true`
-- `ssh_source_ranges` : défaut `["0.0.0.0/0"]`
-- `app_source_ranges` : défaut `["0.0.0.0/0"]`
+- `project_id`: required
+- `region`: default `northamerica-northeast1`
+- `zone`: default `northamerica-northeast1-b`
+- `instance_name`: default `metricforge-demo-vm`
+- `machine_type`: default `e2-standard-8`
+- `create_firewall_rules`: default `true`
+- `ssh_source_ranges`: default `["0.0.0.0/0"]`
+- `app_source_ranges`: default `["0.0.0.0/0"]`
 
-Pour restreindre l'accès :
+To restrict access:
 
 ```bash
 terraform apply \
@@ -72,15 +72,15 @@ terraform apply \
   -var='app_source_ranges=["<YOUR_IP>/32"]'
 ```
 
-## Après création
+## After creation
 
-Récupère la commande SSH :
+Fetch the SSH command:
 
 ```bash
 terraform output ssh_command
 ```
 
-Puis sur la VM :
+Then on the VM:
 
 ```bash
 git clone https://github.com/Stefen-Taime/Semantic-Layer-Platform.git
@@ -88,16 +88,16 @@ cd Semantic-Layer-Platform
 ./scripts/run_demo_stack.sh
 ```
 
-## Sortie
+## Teardown
 
-Quand la démo est finie :
+When the demo is over:
 
 ```bash
 terraform destroy -var="project_id=<GCP_PROJECT_ID>"
 ```
 
-## Limites honnêtes
+## Honest limits
 
-- les règles firewall sont ouvertes par défaut pour simplifier la démo ; restreins-les avant exposition publique
-- la VM créée est pensée pour la démo portfolio, pas pour de la production
-- la stack complète reste gourmande ; `e2-standard-8` est un compromis raisonnable, pas un surdimensionnement
+- the firewall rules are open by default to keep the demo simple; tighten them before any public exposure
+- the VM created here targets the portfolio demo, not production workloads
+- the full stack is still heavy; `e2-standard-8` is a reasonable compromise, not an overkill

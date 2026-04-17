@@ -1,8 +1,8 @@
 # Minerva Mapping
 
-## Mapping conceptuel
+## Conceptual mapping
 
-Airbnb Minerva :
+Airbnb Minerva:
 
 - Airflow
 - Hive / Spark
@@ -11,7 +11,7 @@ Airbnb Minerva :
 - Minerva API
 - metric configs
 
-MetricForge NYC :
+MetricForge NYC:
 
 - Airflow
 - Spark
@@ -21,10 +21,10 @@ MetricForge NYC :
 - FastAPI
 - YAML semantic layer
 
-## Ce que cela montre
+## What this illustrates
 
-Le projet n'est pas une copie de Minerva, mais une transposition réaliste à petite échelle :
+The project is not a Minerva clone, it is a realistic small-scale transposition:
 
-- mêmes briques conceptuelles
-- mêmes tensions entre batch et serving
-- même besoin de centraliser les définitions métier
+- the same conceptual building blocks,
+- the same tensions between batch and serving,
+- the same need to centralize business definitions.

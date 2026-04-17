@@ -1,11 +1,11 @@
 # Hive Configuration
 
-Ce dossier contient les éléments de configuration de base pour le **Hive Metastore**.
+This folder contains the base configuration for the **Hive Metastore**.
 
-Le rôle de Hive dans MetricForge NYC est de centraliser :
+In MetricForge NYC, Hive centralizes:
 
-- les bases de données,
-- les tables batch certifiées,
-- les schémas consultés ensuite par Trino.
+- databases,
+- certified batch tables,
+- the schemas later consumed by Trino.
 
-Le fichier `hive-site.xml.example` est fourni comme point de départ documentaire. Il devra être adapté à l'environnement local ou à la VM GCP.
+The `hive-site.xml.example` file is provided as a documentation starting point. It must be adapted to the local environment or the GCP VM.
